@@ -1,6 +1,6 @@
 # Tasks: KakeiboAI personal finance companion (Hackathon MVP)
 
-**Input**: Design documents from `/specs/001-kakeiboai-personal-finance-coach/`
+**Input**: Design documents from `/specs/001-kakeiboai/`
 
 **Technology stack**: Python, Streamlit, SQLite, Pandas, Plotly
 

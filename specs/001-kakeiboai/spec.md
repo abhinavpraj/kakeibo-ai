@@ -1,6 +1,6 @@
 # Feature Specification: KakeiboAI personal finance companion
 
-**Feature Branch**: `001-kakeiboai-personal-finance-coach`
+**Feature Branch**: `001-kakeiboai`
 
 **Created**: 2026-06-09
 

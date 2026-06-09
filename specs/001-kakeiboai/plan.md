@@ -1,8 +1,8 @@
 # Implementation Plan: KakeiboAI personal finance companion
 
-**Branch**: `001-kakeiboai-personal-finance-coach` | **Date**: 2026-06-09 | **Spec**: specs/001-kakeiboai-personal-finance-coach/spec.md
+**Branch**: `001-kakeiboai` | **Date**: 2026-06-09 | **Spec**: specs/001-kakeiboai/spec.md
 
-**Input**: Feature specification from `/specs/001-kakeiboai-personal-finance-coach/spec.md`
+**Input**: Feature specification from `/specs/001-kakeiboai/spec.md`
 
 ## Summary
 
