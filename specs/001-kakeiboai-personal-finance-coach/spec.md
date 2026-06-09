@@ -20,11 +20,11 @@ These principles drive the reflection and budgeting experience throughout the ap
 
 ### User Story 1 - Record and categorize expenses (Priority: P1)
 
-A user wants to quickly log daily spending, assign it to a Kakeibo category, and see how it affects their monthly budget.
+A user wants to quickly log daily spending, assign it to one of the four Kakeibo categories, and see how it affects their monthly budget.
 
 **Why this priority**: Expense tracking is the core entry point for the product and enables all subsequent insights and reflections.
 
-**Independent Test**: Verify the user can add an expense, choose a category, and see the expense reflected in the monthly spend summary.
+**Independent Test**: Verify the user can add an expense only after selecting one of the required categories and see the expense reflected in the monthly spend summary.
 
 **Acceptance Scenarios**:
 
@@ -50,16 +50,16 @@ A user wants to define how much they want to save each month and immediately see
 
 ### User Story 3 - Reflect on purchases with AI-driven prompts (Priority: P2)
 
-A user wants to understand why they spent money and whether purchases were intentional or impulsive.
+A user wants to understand why they spent money and whether purchases were intentional or impulsive, especially for discretionary spending.
 
 **Why this priority**: Reflection distinguishes KakeiboAI from standard expense trackers by encouraging behavioral change.
 
-**Independent Test**: Validate that reflection prompts are presented with expense details and that the user can review them in a journal-like view.
+**Independent Test**: Validate that reflection prompts are offered for selected Optional and Extra expenses and that reflections remain optional and non-blocking.
 
 **Acceptance Scenarios**:
 
-1. **Given** a recent expense is logged, **when** the app generates a reflection prompt, **then** the prompt asks about necessity, delayability, or value of the purchase.
-2. **Given** the user answers a reflection prompt, **when** they revisit the monthly review, **then** the reflection is saved with the expense entry.
+1. **Given** a recent Optional or Extra expense is logged, **when** the app decides to prompt reflection, **then** the prompt asks about necessity, delayability, or value of the purchase.
+2. **Given** the user skips or answers a reflection prompt, **when** they revisit the monthly review, **then** the expense is saved regardless and any reflection is preserved if entered.
 
 ---
 
@@ -67,14 +67,14 @@ A user wants to understand why they spent money and whether purchases were inten
 
 A user wants personalized recommendations and alerts based on category trends and budget progress.
 
-**Why this priority**: AI insights provide value beyond raw transaction data by helping users spot patterns and avoid repeated mistakes.
+**Why this priority**: Insights provide value beyond raw transaction data by helping users spot patterns and avoid repeated mistakes.
 
-**Independent Test**: Confirm the system can generate at least one insight about spending patterns and link it to user behavior.
+**Independent Test**: Confirm the system can generate at least one insight about spending patterns and link it to user behavior using rule-based logic.
 
 **Acceptance Scenarios**:
 
 1. **Given** the user has multiple expenses logged, **when** they request an insight summary, **then** the system highlights an actionable observation such as overspending in a category.
-2. **Given** the user’s spending trend threatens the savings goal, **when** the dashboard updates, **then** an alert or suggestion is shown.
+2. **Given** the user’s spending trend threatens the savings goal, **when** the dashboard updates, **then** an alert or suggestion is shown based on trend analysis or rule-based heuristics.
 
 ---
 
@@ -95,7 +95,7 @@ A user wants a concise monthly review that summarizes performance and recommends
 
 ### Edge Cases
 
-- What happens when the user submits an expense without a category?
+- What happens when the user submits an expense without a category? (Expenses must not save until a category is selected.)
 - How does the system handle negative or zero amounts?
 - What if the user changes the savings goal mid-month?
 - How does the app behave if there is no spending data yet?
@@ -105,15 +105,17 @@ A user wants a concise monthly review that summarizes performance and recommends
 
 ### Functional Requirements
 
-- **FR-001**: System MUST allow users to record an expense with amount, date, category, description, and optional reflection.
-- **FR-002**: System MUST allow users to define monthly income and savings goals.
-- **FR-003**: System MUST categorize expenses using Kakeibo categories: Survival, Optional, Culture, and Extra.
-- **FR-004**: System MUST calculate and display monthly savings progress, remaining budget, and category totals.
-- **FR-005**: System MUST generate spending insights and recommendations based on user spending patterns, category trends, and progress toward savings goals.
-- **FR-006**: System MUST provide reflection prompts tied to expense behavior.
-- **FR-007**: System MUST persist user data locally using a reliable storage mechanism.
-- **FR-008**: System MUST support a monthly review experience that summarizes performance and improvement opportunities.
-- **FR-009:** System MUST provide an interactive dashboard with spending visualizations, category breakdowns, and savings progress indicators.
+- **FR-001**: System MUST allow users to record an expense with amount, date, required category, description, and optional reflection.
+- **FR-002**: System MUST require users to select one of the four Kakeibo categories before saving an expense.
+- **FR-003**: System MUST allow users to define monthly income and savings goals.
+- **FR-004**: System MUST categorize expenses using Kakeibo categories: Survival, Optional, Culture, and Extra.
+- **FR-005**: System MUST calculate and display monthly savings progress, remaining budget, and category totals.
+- **FR-006**: System MUST generate financial insights using rule-based and trend-based logic in the MVP.
+- **FR-007**: System SHOULD support future AI-generated narrative recommendations, but MVP must work without external AI services.
+- **FR-008**: System MUST provide reflection prompts for selected Optional and Extra expenses; reflections remain optional and do not block saving.
+- **FR-009**: System MUST persist user data locally using a reliable storage mechanism.
+- **FR-010**: System MUST support a monthly review experience that summarizes performance and improvement opportunities.
+- **FR-011**: System MUST provide an interactive dashboard with spending visualizations, category breakdowns, and savings progress indicators.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -136,6 +138,8 @@ A user wants a concise monthly review that summarizes performance and recommends
 
 - Users want a lightweight personal finance tool with behavioral reflection, not a full banking app.
 - The first release can ship as a web-based UI (e.g. Streamlit) backed by local persistence (SQLite).
-- AI-driven insights may be generated locally or via a lightweight model; the core experience must still work without external AI access.
+- The MVP insight engine will be rule-based and trend-based; the core experience must still work without external AI access.
+- The application will support a single default currency: INR (₹) for the initial release.
+- Multi-currency and localization support are out of scope for v1.
 - Mobile-native clients are out of scope for the initial feature.
 - Existing user authentication and multi-user support are out of scope for v1.
