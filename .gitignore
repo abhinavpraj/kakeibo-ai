@@ -1,0 +1,45 @@
+ # Virtual Environments
+.venv/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# SQLite Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment Variables
+.env
+.env.local
+
+# Streamlit
+.streamlit/secrets.toml
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/settings.json
+
+# Logs
+*.log
+
+# Build Artifacts
+build/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Temporary Files
+*.tmp
+*.temp
+
+# SpecKit Sensitive Files (if any credentials are added later)
+.github/copilot/
