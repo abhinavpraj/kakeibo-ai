@@ -1,93 +1,192 @@
-# kakeibo-ai
+# KakeiboAI
 
+### Reflect. Save. Grow.
 
+KakeiboAI is an AI-powered personal finance companion inspired by the century-old Japanese **Kakeibo** budgeting methodology. Unlike traditional expense trackers that focus solely on recording transactions, KakeiboAI helps users understand **why** they spend money and build healthier financial habits through reflection, goal setting, and intelligent insights.
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Problem Statement
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Many students and young professionals struggle with:
 
-## Add your files
+* Impulsive spending
+* Poor budgeting habits
+* Difficulty achieving savings goals
+* Lack of awareness about spending patterns
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+Traditional budgeting applications provide charts and statistics but rarely help users understand the motivations behind their spending decisions.
 
-```
-cd existing_repo
-git remote add origin https://code.swecha.org/abhinavprajapati/kakeibo-ai.git
-git branch -M main
-git push -uf origin main
-```
+---
 
-## Integrate with your tools
+## Solution
 
-- [ ] [Set up project integrations](https://code.swecha.org/abhinavprajapati/kakeibo-ai/-/settings/integrations)
+KakeiboAI digitizes the Japanese Kakeibo method and enhances it with AI-powered insights.
 
-## Collaborate with your team
+The platform encourages users to:
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+* Track income and expenses
+* Set monthly savings goals
+* Categorize spending
+* Reflect on purchases
+* Receive personalized financial recommendations
 
-## Test and Deploy
+By combining financial tracking with behavioral reflection, KakeiboAI helps users make more intentional spending decisions.
 
-Use the built-in continuous integration in GitLab.
+---
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Core Philosophy
 
-***
+Every month, users answer four key questions:
 
-# Editing this README
+1. How much money do I have?
+2. How much would I like to save?
+3. How much am I spending?
+4. How can I improve?
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+KakeiboAI transforms these questions into a guided digital experience.
 
-## Suggestions for a good README
+---
+## What Makes KakeiboAI Different?
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Most expense trackers answer:
 
-## Name
-Choose a self-explaining name for your project.
+"Where did my money go?"
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+KakeiboAI answers:
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+"Why did I spend my money this way?"
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Instead of focusing solely on transactions and analytics, KakeiboAI encourages users to reflect on spending decisions, identify behavioral patterns, and make intentional financial choices.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Features
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### Expense Tracking
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Record daily expenses quickly and easily.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### Savings Goal Management
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+Set monthly savings targets and monitor progress in real time.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### Kakeibo Categories
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Expenses are categorized into:
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+* Survival (Needs)
+* Optional (Wants)
+* Culture (Learning & Growth)
+* Extra (Unexpected Expenses)
 
-## License
-For open source projects, say how it is licensed.
+### Reflection Journal
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Users are encouraged to reflect on purchases through prompts such as:
+
+* Was this purchase necessary?
+* Could it have been delayed?
+* Did it provide lasting value?
+
+### AI Financial Coach
+
+KakeiboAI analyzes spending behavior and generates personalized insights.
+
+Examples:
+- "You spent 35% more on food delivery this week than usual."
+- "Your current spending trend may cause you to miss your savings target."
+- "Most of your discretionary spending occurs during weekends."
+- "Reducing food delivery expenses by two orders this month could increase savings by ₹700."
+
+### Monthly Review
+
+Analyze spending patterns and identify opportunities for improvement.
+
+---
+
+## Example User Journey
+
+1. Set monthly income or allowance
+2. Define savings goal
+3. Record expenses throughout the month
+4. Categorize purchases
+5. Receive AI-generated insights
+6. Complete monthly reflections
+7. Improve spending habits over time
+## Sample Scenario
+
+Monthly Allowance: ₹12,000
+Savings Goal: ₹3,000
+
+Expenses:
+- Swiggy: ₹350
+- Coffee: ₹180
+- Online Course: ₹500
+
+AI Insight:
+"You have spent 42% of your discretionary budget within the first two weeks. Reducing food delivery expenses could help you achieve your savings goal."
+
+Reflection Prompt:
+"Was this purchase planned or impulsive?"
+---
+
+## Tech Stack
+
+### Frontend
+
+* Next.js
+* React
+* Tailwind CSS
+* TypeScript
+
+### Backend
+
+* Python
+* FastAPI
+
+### Database
+
+* PostgreSQL
+
+### AI Layer
+
+* Spending pattern analysis
+* Reflection generation
+* Savings prediction
+* Personalized financial insights
+
+### Deployment
+
+* Frontend: Vercel
+* Backend: FastAPI-compatible cloud platforms
+
+---
+
+## Future Scope
+
+- Personalized AI Financial Advisor
+- Bank Account Integration
+- Receipt Scanning using OCR
+- Voice-Based Expense Logging
+- Financial Wellness Scoring
+- Shared Budgeting for Families and Groups
+
+---
+
+## Why KakeiboAI?
+
+Most finance applications track transactions.
+
+**KakeiboAI tracks financial behavior.**
+
+Our goal is to help users develop mindful spending habits, achieve savings goals, and build long-term financial well-being through reflection and awareness.
+
+---
+
+## Hackathon Project
+
+Built as part of Hackathon 2 under Swecha Internship- Summer of 2026.
+
+---
+
+### Tagline
+
+**Track Less. Understand More.**
