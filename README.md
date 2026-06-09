@@ -50,11 +50,9 @@ KakeiboAI transforms these questions into a guided digital experience.
 ## What Makes KakeiboAI Different?
 
 Most expense trackers answer:
-
 "Where did my money go?"
 
 KakeiboAI answers:
-
 "Why did I spend my money this way?"
 
 Instead of focusing solely on transactions and analytics, KakeiboAI encourages users to reflect on spending decisions, identify behavioral patterns, and make intentional financial choices.
@@ -88,7 +86,7 @@ Users are encouraged to reflect on purchases through prompts such as:
 
 ### AI Financial Coach
 
-KakeiboAI analyzes spending behavior and generates personalized insights.
+KakeiboAI analyzes spending behavior and generates intelligent financial insights using spending patterns, budgeting rules, and AI-assisted recommendations.
 
 Examples:
 - "You spent 35% more on food delivery this week than usual."
@@ -99,6 +97,10 @@ Examples:
 ### Monthly Review
 
 Analyze spending patterns and identify opportunities for improvement.
+
+### Interactive Financial Dashboard
+
+Visualize spending trends, category-wise breakdowns, savings progress, and monthly summaries through interactive charts and analytics.
 
 ---
 
@@ -130,35 +132,42 @@ Reflection Prompt:
 
 ## Tech Stack
 
-### Frontend
+### Application Framework
 
-* Next.js
-* React
-* Tailwind CSS
-* TypeScript
-
-### Backend
-
-* Python
-* FastAPI
+- Python
+- Streamlit
 
 ### Database
 
-* PostgreSQL
+- SQLite
+
+### Data Processing & Analytics
+
+- Pandas
+- NumPy
+
+### Data Visualization
+
+- Plotly
 
 ### AI Layer
 
-* Spending pattern analysis
-* Reflection generation
-* Savings prediction
-* Personalized financial insights
+- Spending Pattern Analysis
+- Reflection Generation
+- Savings Forecasting
+- Personalized Financial Insights
+
+### Development Tools
+
+- Git
+- GitLab
+- VS Code
 
 ### Deployment
 
-* Frontend: Vercel
-* Backend: FastAPI-compatible cloud platforms
-
----
+- Streamlit Community Cloud (optional)
+- or Vercel
+- Local deployment for hackathon demonstration
 
 ## Future Scope
 
