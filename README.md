@@ -4,7 +4,7 @@
 
 KakeiboAI is an AI-powered personal finance companion inspired by the century-old Japanese **Kakeibo** budgeting methodology. Unlike traditional expense trackers that focus solely on recording transactions, KakeiboAI helps users understand **why** they spend money and build healthier financial habits through reflection, goal setting, and intelligent insights.
 
-Frontend Link: https://kakeibo-ai.streamlit.app/
+### Frontend Link: https://kakeibo-ai.streamlit.app/
 ---
 
 ## Problem Statement
