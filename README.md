@@ -222,3 +222,7 @@ Built as part of Hackathon 2 under Swecha Internship- Summer of 2026.
 ### Tagline
 
 **Track Less. Understand More.**
+
+## Security
+
+Please refer to [SECURITY.md](SECURITY.md) for information about reporting vulnerabilities and responsible disclosure.
