@@ -169,6 +169,29 @@ Reflection Prompt:
 - or Vercel
 - Local deployment for hackathon demonstration
 
+## Run Locally
+
+1. Create and activate a virtual environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Start the app:
+
+```bash
+streamlit run app.py
+```
+
+The app stores data locally in `kakeibo.db`, which is ignored by Git.
+
 ## Future Scope
 
 - Personalized AI Financial Advisor
