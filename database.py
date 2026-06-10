@@ -154,3 +154,13 @@ def get_incomes():
     if not incomes.empty:
         incomes["date"] = pd.to_datetime(incomes["date"])
     return incomes
+
+
+def delete_income(income_id):
+    with get_connection() as conn:
+        conn.execute("DELETE FROM incomes WHERE id = ?", (int(income_id),))
+
+
+def delete_expense(expense_id):
+    with get_connection() as conn:
+        conn.execute("DELETE FROM expenses WHERE id = ?", (int(expense_id),))

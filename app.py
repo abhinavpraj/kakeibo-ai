@@ -9,6 +9,8 @@ from database import (
     INCOME_SOURCES,
     add_expense,
     add_income,
+    delete_expense,
+    delete_income,
     get_expenses,
     get_incomes,
     get_goal,
@@ -287,6 +289,32 @@ else:
         width="stretch",
     )
 
+    for _, row in income_history.iterrows():
+        cols = st.columns([1.2, 1.0, 0.8, 1.4, 0.6])
+        cols[0].write(row["Date"])
+        cols[1].write(row["Source"])
+        cols[2].write(row["Amount"])
+        cols[3].write(row["Notes"])
+        if cols[4].button("Delete", key=f"delete_income_{row['id']}"):
+            st.session_state.pending_delete = {
+                "type": "income",
+                "id": int(row["id"]),
+                "summary": f"{row['Source']} - {row['Amount']} on {row['Date']}",
+            }
+
+if st.session_state.get("pending_delete") and st.session_state["pending_delete"]["type"] == "income":
+    with st.modal("Confirm delete income"):
+        st.warning(
+            f"Are you sure you want to delete this income entry?\n\n{st.session_state['pending_delete']['summary']}"
+        )
+        if st.button("Yes, delete income", key="confirm_delete_income"):
+            delete_income(st.session_state["pending_delete"]["id"])
+            del st.session_state["pending_delete"]
+            st.success("Income entry deleted.")
+            st.experimental_rerun()
+        if st.button("Cancel", key="cancel_delete_income"):
+            del st.session_state["pending_delete"]
+
 st.subheader("Expense History")
 if expenses.empty:
     st.write("No saved expenses yet.")
@@ -307,3 +335,30 @@ else:
         hide_index=True,
         width="stretch",
     )
+
+    for _, row in history.iterrows():
+        cols = st.columns([1.0, 1.4, 1.0, 0.9, 0.9, 0.6])
+        cols[0].write(row["Date"])
+        cols[1].write(row["Description"])
+        cols[2].write(row["Category"])
+        cols[3].write(row["Amount"])
+        cols[4].write(row["Reflection"])
+        if cols[5].button("Delete", key=f"delete_expense_{row['id']}"):
+            st.session_state.pending_delete = {
+                "type": "expense",
+                "id": int(row["id"]),
+                "summary": f"{row['Description']} - {row['Amount']} on {row['Date']}",
+            }
+
+if st.session_state.get("pending_delete") and st.session_state["pending_delete"]["type"] == "expense":
+    with st.modal("Confirm delete expense"):
+        st.warning(
+            f"Are you sure you want to delete this expense entry?\n\n{st.session_state['pending_delete']['summary']}"
+        )
+        if st.button("Yes, delete expense", key="confirm_delete_expense"):
+            delete_expense(st.session_state["pending_delete"]["id"])
+            del st.session_state["pending_delete"]
+            st.success("Expense entry deleted.")
+            st.experimental_rerun()
+        if st.button("Cancel", key="cancel_delete_expense"):
+            del st.session_state["pending_delete"]
