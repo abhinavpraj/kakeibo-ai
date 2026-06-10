@@ -11,6 +11,13 @@ CATEGORIES = [
     "Culture (Growth & Learning)",
     "Extra (Unexpected)",
 ]
+INCOME_SOURCES = [
+    "Salary",
+    "Bonus",
+    "Rent Received",
+    "Interest",
+    "Other",
+]
 CATEGORY_ALIASES = {
     "Survival": "Survival (Needs)",
     "Optional": "Optional (Wants)",
@@ -34,6 +41,18 @@ def init_db():
                 category TEXT NOT NULL,
                 description TEXT NOT NULL,
                 reflection TEXT DEFAULT '',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS incomes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                amount REAL NOT NULL CHECK(amount > 0),
+                date TEXT NOT NULL,
+                source TEXT NOT NULL,
+                notes TEXT DEFAULT '',
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -105,3 +124,33 @@ def get_expenses():
         expenses["date"] = pd.to_datetime(expenses["date"])
         expenses["category"] = expenses["category"].replace(CATEGORY_ALIASES)
     return expenses
+
+
+def add_income(amount, date, source, notes=""):
+    if float(amount) <= 0:
+        raise ValueError("Income amount must be greater than zero.")
+
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO incomes (amount, date, source, notes)
+            VALUES (?, ?, ?, ?)
+            """,
+            (float(amount), date.isoformat(), source.strip(), notes.strip()),
+        )
+
+
+def get_incomes():
+    with get_connection() as conn:
+        incomes = pd.read_sql_query(
+            """
+            SELECT id, date, source, amount, notes
+            FROM incomes
+            ORDER BY date DESC, id DESC
+            """,
+            conn,
+        )
+
+    if not incomes.empty:
+        incomes["date"] = pd.to_datetime(incomes["date"])
+    return incomes

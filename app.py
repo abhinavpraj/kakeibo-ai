@@ -4,7 +4,17 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from database import CATEGORIES, add_expense, get_expenses, get_goal, init_db, save_goal
+from database import (
+    CATEGORIES,
+    INCOME_SOURCES,
+    add_expense,
+    add_income,
+    get_expenses,
+    get_incomes,
+    get_goal,
+    init_db,
+    save_goal,
+)
 from insights import currency, generate_insights
 
 
@@ -20,13 +30,12 @@ def category_color(category):
     }.get(category, "#828282")
 
 
-def current_month_expenses(expenses):
-    if expenses.empty:
-        return expenses
+def current_month_items(rows):
+    if rows.empty:
+        return rows
     today = pd.Timestamp.today()
-    return expenses[
-        (expenses["date"].dt.month == today.month)
-        & (expenses["date"].dt.year == today.year)
+    return rows[
+        (rows["date"].dt.month == today.month) & (rows["date"].dt.year == today.year)
     ]
 
 
@@ -46,7 +55,11 @@ def parse_money_input(value):
 init_db()
 goal = get_goal()
 expenses = get_expenses()
-month_expenses = current_month_expenses(expenses)
+incomes = get_incomes()
+month_expenses = current_month_items(expenses)
+month_incomes = current_month_items(incomes)
+
+actual_income_received = float(month_incomes["amount"].sum()) if not month_incomes.empty else 0
 
 total_spent = float(month_expenses["amount"].sum()) if not month_expenses.empty else 0
 planned_spend = max(float(goal["monthly_income"]) - float(goal["target_savings"]), 0)
@@ -67,7 +80,7 @@ with header_left:
 with header_right:
     st.metric("Current Month", current_month_label)
 
-plan_panel, expense_panel = st.columns([0.9, 1.1], gap="large")
+plan_panel, income_panel, expense_panel = st.columns([0.85, 0.95, 1.1], gap="large")
 
 with plan_panel:
     with st.container(border=True):
@@ -94,6 +107,42 @@ with plan_panel:
                 else:
                     save_goal(monthly_income, target_savings)
                     st.success("Monthly plan saved.")
+                    st.rerun()
+
+with income_panel:
+    with st.container(border=True):
+        st.subheader("Quick Income")
+        with st.form("income_form", clear_on_submit=True):
+            income_cols = st.columns([0.95, 0.95, 1.25])
+            with income_cols[0]:
+                income_amount_input = st.text_input("₹ Amount", placeholder="₹ 2000")
+            with income_cols[1]:
+                income_date = st.date_input("Date", value=date.today(), format="DD/MM/YYYY")
+            with income_cols[2]:
+                income_source = st.selectbox("Source", INCOME_SOURCES, index=0)
+
+            custom_source = ""
+            if income_source == "Other":
+                custom_source = st.text_input("Custom source", placeholder="Freelance, gift, etc.")
+
+            income_notes = st.text_input(
+                "Notes",
+                placeholder="Rent for June, bonus payout, interest earned",
+            )
+
+            income_submitted = st.form_submit_button("Add income", width="stretch")
+            if income_submitted:
+                income_amount = parse_money_input(income_amount_input)
+                source_text = custom_source.strip() if income_source == "Other" else income_source
+                if income_amount is None:
+                    st.error("Use numbers only for income amount.")
+                elif income_amount <= 0:
+                    st.error("Enter an amount greater than zero.")
+                elif not source_text:
+                    st.error("Choose or enter an income source.")
+                else:
+                    add_income(income_amount, income_date, source_text, income_notes)
+                    st.success("Income added.")
                     st.rerun()
 
 with expense_panel:
@@ -137,11 +186,12 @@ with expense_panel:
 
 st.divider()
 
-metric_cols = st.columns(4)
+metric_cols = st.columns(5)
 metric_cols[0].metric("Monthly Income", currency(goal["monthly_income"]))
-metric_cols[1].metric("Savings Goal", currency(goal["target_savings"]))
-metric_cols[2].metric("Spent This Month", currency(total_spent))
-metric_cols[3].metric("Budget Left", currency(remaining_budget))
+metric_cols[1].metric("Income Received", currency(actual_income_received))
+metric_cols[2].metric("Savings Goal", currency(goal["target_savings"]))
+metric_cols[3].metric("Spent This Month", currency(total_spent))
+metric_cols[4].metric("Budget Left", currency(remaining_budget))
 
 st.progress(progress, text=f"Projected savings: {currency(forecast_savings)}")
 
@@ -216,6 +266,26 @@ with dashboard_right:
                 st.success("On track")
             else:
                 st.warning("Needs attention")
+
+st.subheader("Income History")
+if incomes.empty:
+    st.write("No saved incomes yet.")
+else:
+    income_history = incomes.copy()
+    income_history["date"] = income_history["date"].dt.strftime("%d/%m/%Y")
+    income_history["amount"] = income_history["amount"].map(currency)
+    st.dataframe(
+        income_history.rename(
+            columns={
+                "date": "Date",
+                "source": "Source",
+                "amount": "Amount",
+                "notes": "Notes",
+            }
+        )[["Date", "Source", "Amount", "Notes"]],
+        hide_index=True,
+        width="stretch",
+    )
 
 st.subheader("Expense History")
 if expenses.empty:
