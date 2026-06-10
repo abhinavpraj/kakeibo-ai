@@ -87,7 +87,7 @@ with plan_panel:
         st.subheader("Monthly Plan")
         with st.form("goal_form"):
             monthly_income_input = st.text_input(
-                "Monthly income or allowance",
+                "Fixed Monthly Income",
                 value=money_input_value(goal["monthly_income"]),
                 placeholder="₹ 20000",
             )
@@ -115,7 +115,7 @@ with income_panel:
         with st.form("income_form", clear_on_submit=True):
             income_cols = st.columns([0.95, 0.95, 1.25])
             with income_cols[0]:
-                income_amount_input = st.text_input("₹ Amount", placeholder="₹ 2000")
+                income_amount_input = st.text_input("Amount", placeholder="₹ 2000")
             with income_cols[1]:
                 income_date = st.date_input("Date", value=date.today(), format="DD/MM/YYYY")
             with income_cols[2]:
@@ -151,7 +151,7 @@ with expense_panel:
         with st.form("expense_form", clear_on_submit=True):
             expense_cols = st.columns([0.8, 0.8, 1.35])
             with expense_cols[0]:
-                expense_amount_input = st.text_input("₹ Amount", placeholder="₹ 250")
+                expense_amount_input = st.text_input("Amount", placeholder="₹ 250")
             with expense_cols[1]:
                 expense_date = st.date_input("Date", value=date.today(), format="DD/MM/YYYY")
             with expense_cols[2]:
