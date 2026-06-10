@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -38,6 +39,7 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 amount REAL NOT NULL CHECK(amount > 0),
                 date TEXT NOT NULL,
+                time TEXT NOT NULL,
                 category TEXT NOT NULL,
                 description TEXT NOT NULL,
                 reflection TEXT DEFAULT '',
@@ -51,12 +53,20 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 amount REAL NOT NULL CHECK(amount > 0),
                 date TEXT NOT NULL,
+                time TEXT NOT NULL,
                 source TEXT NOT NULL,
                 notes TEXT DEFAULT '',
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
             """
         )
+        for table, column_def in [
+            ("expenses", "time TEXT NOT NULL DEFAULT ''"),
+            ("incomes", "time TEXT NOT NULL DEFAULT ''"),
+        ]:
+            existing_columns = [row[1] for row in conn.execute(f"PRAGMA table_info({table})")]
+            if column_def.split()[0] not in existing_columns:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS goals (
@@ -99,13 +109,21 @@ def add_expense(amount, date, category, description, reflection=""):
     if category not in CATEGORIES:
         raise ValueError("Expense category must be one of the Kakeibo categories.")
 
+    entry_time = datetime.now().strftime("%H:%M:%S")
     with get_connection() as conn:
         conn.execute(
             """
-            INSERT INTO expenses (amount, date, category, description, reflection)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO expenses (amount, date, time, category, description, reflection)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (float(amount), date.isoformat(), category, description.strip(), reflection.strip()),
+            (
+                float(amount),
+                date.isoformat(),
+                entry_time,
+                category.strip(),
+                description.strip(),
+                reflection.strip(),
+            ),
         )
 
 
@@ -113,7 +131,7 @@ def get_expenses():
     with get_connection() as conn:
         expenses = pd.read_sql_query(
             """
-            SELECT id, date, description, category, amount, reflection
+            SELECT id, date, time, description, category, amount, reflection
             FROM expenses
             ORDER BY date DESC, id DESC
             """,
@@ -130,13 +148,14 @@ def add_income(amount, date, source, notes=""):
     if float(amount) <= 0:
         raise ValueError("Income amount must be greater than zero.")
 
+    entry_time = datetime.now().strftime("%H:%M:%S")
     with get_connection() as conn:
         conn.execute(
             """
-            INSERT INTO incomes (amount, date, source, notes)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO incomes (amount, date, time, source, notes)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (float(amount), date.isoformat(), source.strip(), notes.strip()),
+            (float(amount), date.isoformat(), entry_time, source.strip(), notes.strip()),
         )
 
 
@@ -144,7 +163,7 @@ def get_incomes():
     with get_connection() as conn:
         incomes = pd.read_sql_query(
             """
-            SELECT id, date, source, amount, notes
+            SELECT id, date, time, source, amount, notes
             FROM incomes
             ORDER BY date DESC, id DESC
             """,

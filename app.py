@@ -280,22 +280,24 @@ else:
         income_history.rename(
             columns={
                 "date": "Date",
+                "time": "Time",
                 "source": "Source",
                 "amount": "Amount",
                 "notes": "Notes",
             }
-        )[["Date", "Source", "Amount", "Notes"]],
+        )[["Date", "Time", "Source", "Amount", "Notes"]],
         hide_index=True,
         width="stretch",
     )
 
     for _, row in income_history.iterrows():
-        cols = st.columns([1.2, 1.0, 0.8, 1.4, 0.6])
+        cols = st.columns([1.0, 0.8, 1.0, 0.8, 1.3, 0.6])
         cols[0].write(row["Date"])
-        cols[1].write(row["Source"])
-        cols[2].write(row["Amount"])
-        cols[3].write(row["Notes"])
-        if cols[4].button("Delete", key=f"delete_income_{row['id']}"):
+        cols[1].write(row["time"])
+        cols[2].write(row["Source"])
+        cols[3].write(row["Amount"])
+        cols[4].write(row["Notes"])
+        if cols[5].button("Delete", key=f"delete_income_{row['id']}"):
             st.session_state.pending_delete = {
                 "type": "income",
                 "id": int(row["id"]),
@@ -326,24 +328,26 @@ else:
         history.rename(
             columns={
                 "date": "Date",
+                "time": "Time",
                 "description": "Description",
                 "category": "Category",
                 "amount": "Amount",
                 "reflection": "Reflection",
             }
-        )[["Date", "Description", "Category", "Amount", "Reflection"]],
+        )[["Date", "Time", "Description", "Category", "Amount", "Reflection"]],
         hide_index=True,
         width="stretch",
     )
 
     for _, row in history.iterrows():
-        cols = st.columns([1.0, 1.4, 1.0, 0.9, 0.9, 0.6])
+        cols = st.columns([0.9, 0.7, 1.4, 0.9, 0.8, 0.8, 0.6])
         cols[0].write(row["Date"])
-        cols[1].write(row["Description"])
-        cols[2].write(row["Category"])
-        cols[3].write(row["Amount"])
-        cols[4].write(row["Reflection"])
-        if cols[5].button("Delete", key=f"delete_expense_{row['id']}"):
+        cols[1].write(row["time"])
+        cols[2].write(row["Description"])
+        cols[3].write(row["Category"])
+        cols[4].write(row["Amount"])
+        cols[5].write(row["Reflection"])
+        if cols[6].button("Delete", key=f"delete_expense_{row['id']}"):
             st.session_state.pending_delete = {
                 "type": "expense",
                 "id": int(row["id"]),
