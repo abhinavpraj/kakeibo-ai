@@ -302,10 +302,11 @@ with dashboard_left:
 
             with table_col:
                 st.markdown(t.get("category_totals", "**Category Totals**"))
-                table = category_totals.rename(
+                category_totals_display = category_totals.copy()
+                category_totals_display["amount"] = category_totals_display["amount"].map(currency)
+                table = category_totals_display.rename(
                     columns={"category": t.get("kakeibo_category", "Kakeibo Category"), "amount": t.get("amount", "Amount")}
                 )
-                table["Amount"] = table["Amount"].map(currency)
                 st.dataframe(table, hide_index=True, width="stretch")
 
 with dashboard_right:
@@ -339,16 +340,19 @@ else:
     income_history = incomes.copy()
     income_history["date"] = income_history["date"].dt.strftime("%d/%m/%Y")
     income_history["amount"] = income_history["amount"].map(currency)
+    
+    cols = ["date", "time", "source", "amount", "notes"]
+    income_history_display = income_history[cols].rename(
+        columns={
+            "date": t.get("date", "Date"),
+            "time": t.get("time", "Time"),
+            "source": t.get("source", "Source"),
+            "amount": t.get("amount", "Amount"),
+            "notes": t.get("notes", "Notes"),
+        }
+    )
     st.dataframe(
-        income_history.rename(
-            columns={
-                "date": t.get("date", "Date"),
-                "time": t.get("time", "Time"),
-                "source": t.get("source", "Source"),
-                "amount": t.get("amount", "Amount"),
-                "notes": t.get("notes", "Notes"),
-            }
-        )[[t.get("date", "Date"), t.get("time", "Time"), t.get("source", "Source"), t.get("amount", "Amount"), t.get("notes", "Notes")]],
+        income_history_display,
         hide_index=True,
         width="stretch",
     )
@@ -378,17 +382,20 @@ else:
     history = expenses.copy()
     history["date"] = history["date"].dt.strftime("%d/%m/%Y")
     history["amount"] = history["amount"].map(currency)
+    
+    cols = ["date", "time", "description", "category", "amount", "reflection"]
+    history_display = history[cols].rename(
+        columns={
+            "date": t.get("date", "Date"),
+            "time": t.get("time", "Time"),
+            "description": t.get("description", "Description"),
+            "category": t.get("category", "Category"),
+            "amount": t.get("amount", "Amount"),
+            "reflection": t.get("reflection", "Reflection"),
+        }
+    )
     st.dataframe(
-        history.rename(
-            columns={
-                "date": t.get("date", "Date"),
-                "time": t.get("time", "Time"),
-                "description": t.get("description", "Description"),
-                "category": t.get("category", "Category"),
-                "amount": t.get("amount", "Amount"),
-                "reflection": t.get("reflection", "Reflection"),
-            }
-        )[[t.get("date", "Date"), t.get("time", "Time"), t.get("description", "Description"), t.get("category", "Category"), t.get("amount", "Amount"), t.get("reflection", "Reflection")]],
+        history_display,
         hide_index=True,
         width="stretch",
     )
