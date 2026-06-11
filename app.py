@@ -48,6 +48,20 @@ st.set_page_config(page_title=t.get("title", "KakeiboAI"), page_icon="₹", layo
 if "selected_date" not in st.session_state:
     st.session_state["selected_date"] = pd.Timestamp.today().normalize()
 
+# Initialize session state keys for inputs
+for key, default in [
+    ("exp_amount", ""),
+    ("exp_desc", ""),
+    ("exp_reflection", ""),
+    ("exp_category", None),
+    ("inc_amount", ""),
+    ("inc_custom_source", ""),
+    ("inc_notes", ""),
+    ("inc_source", "Salary")
+]:
+    if key not in st.session_state:
+        st.session_state[key] = default
+
 
 def category_color(category):
     return {
@@ -173,77 +187,86 @@ with plan_panel:
 with income_panel:
     with st.container(border=True):
         st.subheader(t.get("quick_income", "Quick Income"))
-        with st.form("income_form", clear_on_submit=True):
-            income_cols = st.columns([0.95, 0.95, 1.25])
-            with income_cols[0]:
-                income_amount_input = st.text_input(t.get("amount", "Amount"), placeholder=t.get("amount_placeholder_income", "₹ 2000"))
-            with income_cols[1]:
-                income_date = st.date_input(t.get("date", "Date"), value=default_form_date, format="DD/MM/YYYY")
-            with income_cols[2]:
-                income_source = st.selectbox(t.get("source", "Source"), INCOME_SOURCES, index=0)
+        income_cols = st.columns([0.95, 0.95, 1.25])
+        with income_cols[0]:
+            income_amount_input = st.text_input(t.get("amount", "Amount"), key="inc_amount", placeholder=t.get("amount_placeholder_income", "₹ 2000"))
+        with income_cols[1]:
+            income_date = st.date_input(t.get("date", "Date"), value=default_form_date, format="DD/MM/YYYY")
+        with income_cols[2]:
+            income_source = st.selectbox(t.get("source", "Source"), INCOME_SOURCES, key="inc_source")
 
-            custom_source = ""
-            if income_source == "Other":
-                custom_source = st.text_input(t.get("custom_source", "Custom source"), placeholder=t.get("custom_source_placeholder", "Freelance, gift, etc."))
+        custom_source = ""
+        if income_source == "Other":
+            custom_source = st.text_input(t.get("custom_source", "Custom source"), key="inc_custom_source", placeholder=t.get("custom_source_placeholder", "Freelance, gift, etc."))
 
-            income_notes = st.text_input(
-                t.get("notes", "Notes"),
-                placeholder=t.get("notes_placeholder", "Rent for June, bonus payout, interest earned"),
-            )
+        income_notes = st.text_input(
+            t.get("notes", "Notes"),
+            key="inc_notes",
+            placeholder=t.get("notes_placeholder", "Rent for June, bonus payout, interest earned"),
+        )
 
-            income_submitted = st.form_submit_button(t.get("add_income", "Add income"), width="stretch")
-            if income_submitted:
-                income_amount = parse_money_input(income_amount_input)
-                source_text = custom_source.strip() if income_source == "Other" else income_source
-                if income_amount is None:
-                    st.error(t.get("error_income_amount_numbers", "Use numbers only for income amount."))
-                elif income_amount <= 0:
-                    st.error(t.get("error_amount_greater_than_zero", "Enter an amount greater than zero."))
-                elif not source_text:
-                    st.error(t.get("error_choose_income_source", "Choose or enter an income source."))
-                else:
-                    add_income(income_amount, income_date, source_text, income_notes)
-                    st.success(t.get("success_income_added", "Income added."))
-                    st.rerun()
+        income_submitted = st.button(t.get("add_income", "Add income"), use_container_width=True)
+        if income_submitted:
+            income_amount = parse_money_input(income_amount_input)
+            source_text = custom_source.strip() if income_source == "Other" else income_source
+            if income_amount is None:
+                st.error(t.get("error_income_amount_numbers", "Use numbers only for income amount."))
+            elif income_amount <= 0:
+                st.error(t.get("error_amount_greater_than_zero", "Enter an amount greater than zero."))
+            elif not source_text:
+                st.error(t.get("error_choose_income_source", "Choose or enter an income source."))
+            else:
+                add_income(income_amount, income_date, source_text, income_notes)
+                st.success(t.get("success_income_added", "Income added."))
+                st.session_state["inc_amount"] = ""
+                st.session_state["inc_custom_source"] = ""
+                st.session_state["inc_notes"] = ""
+                st.session_state["inc_source"] = "Salary"
+                st.rerun()
 
 with expense_panel:
     with st.container(border=True):
         st.subheader(t.get("quick_expense", "Quick Expense"))
-        with st.form("expense_form", clear_on_submit=True):
-            expense_cols = st.columns([0.8, 0.8, 1.35])
-            with expense_cols[0]:
-                expense_amount_input = st.text_input(t.get("amount", "Amount"), placeholder=t.get("amount_placeholder_expense", "₹ 250"))
-            with expense_cols[1]:
-                expense_date = st.date_input(t.get("date", "Date"), value=default_form_date, format="DD/MM/YYYY")
-            with expense_cols[2]:
-                category = st.selectbox(t.get("kakeibo_category", "Kakeibo category"), CATEGORIES, index=None)
-            description = st.text_input(
-                t.get("description", "Description"),
-                placeholder=t.get("description_placeholder", "Coffee, bus pass, online course"),
+        expense_cols = st.columns([0.8, 0.8, 1.35])
+        with expense_cols[0]:
+            expense_amount_input = st.text_input(t.get("amount", "Amount"), key="exp_amount", placeholder=t.get("amount_placeholder_expense", "₹ 250"))
+        with expense_cols[1]:
+            expense_date = st.date_input(t.get("date", "Date"), value=default_form_date, format="DD/MM/YYYY")
+        with expense_cols[2]:
+            category = st.selectbox(t.get("kakeibo_category", "Kakeibo category"), CATEGORIES, index=None, key="exp_category")
+        description = st.text_input(
+            t.get("description", "Description"),
+            key="exp_desc",
+            placeholder=t.get("description_placeholder", "Coffee, bus pass, online course"),
+        )
+
+        reflection = ""
+        if category in {"Optional (Wants)", "Culture (Growth & Learning)", "Extra (Unexpected)"}:
+            reflection = st.text_area(
+                t.get("reflection", "Reflection"),
+                key="exp_reflection",
+                placeholder=t.get("reflection_placeholder", "Was this planned, necessary, or worth delaying?"),
             )
 
-            reflection = ""
-            if category in {"Optional (Wants)", "Extra (Unexpected)"}:
-                reflection = st.text_area(
-                    t.get("reflection", "Reflection"),
-                    placeholder=t.get("reflection_placeholder", "Was this planned, necessary, or worth delaying?"),
-                )
-
-            submitted = st.form_submit_button(t.get("add_expense", "Add expense"), width="stretch")
-            if submitted:
-                expense_amount = parse_money_input(expense_amount_input)
-                if expense_amount is None:
-                    st.error(t.get("error_expense_amount_numbers", "Use numbers only for expense amount."))
-                elif expense_amount <= 0:
-                    st.error(t.get("error_amount_greater_than_zero", "Enter an amount greater than zero."))
-                elif category is None:
-                    st.error(t.get("error_choose_kakeibo_category", "Choose one of the four Kakeibo categories."))
-                elif not description.strip():
-                    st.error(t.get("error_short_description", "Add a short description."))
-                else:
-                    add_expense(expense_amount, expense_date, category, description, reflection)
-                    st.success(t.get("success_expense_added", "Expense added."))
-                    st.rerun()
+        submitted = st.button(t.get("add_expense", "Add expense"), use_container_width=True)
+        if submitted:
+            expense_amount = parse_money_input(expense_amount_input)
+            if expense_amount is None:
+                st.error(t.get("error_expense_amount_numbers", "Use numbers only for expense amount."))
+            elif expense_amount <= 0:
+                st.error(t.get("error_amount_greater_than_zero", "Enter an amount greater than zero."))
+            elif category is None:
+                st.error(t.get("error_choose_kakeibo_category", "Choose one of the four Kakeibo categories."))
+            elif not description.strip():
+                st.error(t.get("error_short_description", "Add a short description."))
+            else:
+                add_expense(expense_amount, expense_date, category, description, reflection)
+                st.success(t.get("success_expense_added", "Expense added."))
+                st.session_state["exp_amount"] = ""
+                st.session_state["exp_desc"] = ""
+                st.session_state["exp_reflection"] = ""
+                st.session_state["exp_category"] = None
+                st.rerun()
 
 st.divider()
 
