@@ -25,14 +25,16 @@ langs = {
     "తెలుగు": "te"
 }
 
+t = load_language("en")
+
 selected = st.sidebar.selectbox(
-    "🌐 Language",
+    t.get("language", "🌐 Language"),
     list(langs.keys())
 )
 t = load_language(langs[selected])
 
 
-st.set_page_config(page_title="KakeiboAI", page_icon="₹", layout="wide")
+st.set_page_config(page_title=t.get("title", "KakeiboAI"), page_icon="₹", layout="wide")
 
 
 def category_color(category):
@@ -89,142 +91,145 @@ current_month_label = pd.Timestamp.today().strftime("%B %Y")
 
 header_left, header_right = st.columns([0.72, 0.28], vertical_alignment="center")
 with header_left:
-    st.title(t["title"])
-    st.caption(t["tagline"])
+    st.title(t.get("title", "KakeiboAI"))
+    st.caption(t.get("tagline", "Reflect. Save. Grow."))
 with header_right:
-    st.metric("Current Month", current_month_label)
+    st.metric(t.get("current_month", "Current Month"), current_month_label)
 
 plan_panel, income_panel, expense_panel = st.columns([0.85, 0.95, 1.1], gap="large")
 
 with plan_panel:
     with st.container(border=True):
-        st.subheader(t["monthly_plan"])
+        st.subheader(t.get("monthly_plan", "Monthly Plan"))
         with st.form("goal_form"):
             monthly_income_input = st.text_input(
-                "Fixed Monthly Income",
+                t.get("fixed_monthly_income", "Fixed Monthly Income"),
                 value=money_input_value(goal["monthly_income"]),
-                placeholder="₹ 20000",
+                placeholder=t.get("fixed_monthly_income_placeholder", "₹ 20000"),
             )
             target_savings_input = st.text_input(
-                "Savings goal",
+                t.get("savings_goal", "Savings Goal"),
                 value=money_input_value(goal["target_savings"]),
-                placeholder="₹ 3000",
+                placeholder=t.get("savings_goal_placeholder", "₹ 3000"),
             )
-            save_plan = st.form_submit_button("Save plan", width="stretch")
+            save_plan = st.form_submit_button(t.get("save_plan", "Save plan"), width="stretch")
             if save_plan:
                 monthly_income = parse_money_input(monthly_income_input)
                 target_savings = parse_money_input(target_savings_input)
                 if monthly_income is None or target_savings is None:
-                    st.error("Use numbers only for income and savings goal.")
+                    st.error(t.get("error_income_savings_numbers", "Use numbers only for income and savings goal."))
                 elif target_savings > monthly_income:
-                    st.error("Savings goal cannot be higher than monthly income.")
+                    st.error(t.get("error_savings_higher", "Savings goal cannot be higher than monthly income."))
                 else:
                     save_goal(monthly_income, target_savings)
-                    st.success("Monthly plan saved.")
+                    st.success(t.get("success_monthly_plan_saved", "Monthly plan saved."))
                     st.rerun()
 
 with income_panel:
     with st.container(border=True):
-        st.subheader("Quick Income")
+        st.subheader(t.get("quick_income", "Quick Income"))
         with st.form("income_form", clear_on_submit=True):
             income_cols = st.columns([0.95, 0.95, 1.25])
             with income_cols[0]:
-                income_amount_input = st.text_input("Amount", placeholder="₹ 2000")
+                income_amount_input = st.text_input(t.get("amount", "Amount"), placeholder=t.get("amount_placeholder_income", "₹ 2000"))
             with income_cols[1]:
-                income_date = st.date_input("Date", value=date.today(), format="DD/MM/YYYY")
+                income_date = st.date_input(t.get("date", "Date"), value=date.today(), format="DD/MM/YYYY")
             with income_cols[2]:
-                income_source = st.selectbox("Source", INCOME_SOURCES, index=0)
+                income_source = st.selectbox(t.get("source", "Source"), INCOME_SOURCES, index=0)
 
             custom_source = ""
             if income_source == "Other":
-                custom_source = st.text_input("Custom source", placeholder="Freelance, gift, etc.")
+                custom_source = st.text_input(t.get("custom_source", "Custom source"), placeholder=t.get("custom_source_placeholder", "Freelance, gift, etc."))
 
             income_notes = st.text_input(
-                "notes",
-                placeholder="Rent for June, bonus payout, interest earned",
+                t.get("notes", "Notes"),
+                placeholder=t.get("notes_placeholder", "Rent for June, bonus payout, interest earned"),
             )
 
-            income_submitted = st.form_submit_button("Add income", width="stretch")
+            income_submitted = st.form_submit_button(t.get("add_income", "Add income"), width="stretch")
             if income_submitted:
                 income_amount = parse_money_input(income_amount_input)
                 source_text = custom_source.strip() if income_source == "Other" else income_source
                 if income_amount is None:
-                    st.error("Use numbers only for income amount.")
+                    st.error(t.get("error_income_amount_numbers", "Use numbers only for income amount."))
                 elif income_amount <= 0:
-                    st.error("Enter an amount greater than zero.")
+                    st.error(t.get("error_amount_greater_than_zero", "Enter an amount greater than zero."))
                 elif not source_text:
-                    st.error("Choose or enter an income source.")
+                    st.error(t.get("error_choose_income_source", "Choose or enter an income source."))
                 else:
                     add_income(income_amount, income_date, source_text, income_notes)
-                    st.success("Income added.")
+                    st.success(t.get("success_income_added", "Income added."))
                     st.rerun()
 
 with expense_panel:
     with st.container(border=True):
-        st.subheader("Quick Expense")
+        st.subheader(t.get("quick_expense", "Quick Expense"))
         with st.form("expense_form", clear_on_submit=True):
             expense_cols = st.columns([0.8, 0.8, 1.35])
             with expense_cols[0]:
-                expense_amount_input = st.text_input("Amount", placeholder="₹ 250")
+                expense_amount_input = st.text_input(t.get("amount", "Amount"), placeholder=t.get("amount_placeholder_expense", "₹ 250"))
             with expense_cols[1]:
-                expense_date = st.date_input("Date", value=date.today(), format="DD/MM/YYYY")
+                expense_date = st.date_input(t.get("date", "Date"), value=date.today(), format="DD/MM/YYYY")
             with expense_cols[2]:
-                category = st.selectbox("Kakeibo category", CATEGORIES, index=None)
+                category = st.selectbox(t.get("kakeibo_category", "Kakeibo category"), CATEGORIES, index=None)
             description = st.text_input(
-                "description",
-                placeholder="Coffee, bus pass, online course",
+                t.get("description", "Description"),
+                placeholder=t.get("description_placeholder", "Coffee, bus pass, online course"),
             )
 
             reflection = ""
             if category in {"Optional (Wants)", "Extra (Unexpected)"}:
                 reflection = st.text_area(
-                    "Reflection",
-                    placeholder="Was this planned, necessary, or worth delaying?",
+                    t.get("reflection", "Reflection"),
+                    placeholder=t.get("reflection_placeholder", "Was this planned, necessary, or worth delaying?"),
                 )
 
-            submitted = st.form_submit_button("Add expense", width="stretch")
+            submitted = st.form_submit_button(t.get("add_expense", "Add expense"), width="stretch")
             if submitted:
                 expense_amount = parse_money_input(expense_amount_input)
                 if expense_amount is None:
-                    st.error("Use numbers only for expense amount.")
+                    st.error(t.get("error_expense_amount_numbers", "Use numbers only for expense amount."))
                 elif expense_amount <= 0:
-                    st.error("Enter an amount greater than zero.")
+                    st.error(t.get("error_amount_greater_than_zero", "Enter an amount greater than zero."))
                 elif category is None:
-                    st.error("Choose one of the four Kakeibo categories.")
+                    st.error(t.get("error_choose_kakeibo_category", "Choose one of the four Kakeibo categories."))
                 elif not description.strip():
-                    st.error("Add a short description.")
+                    st.error(t.get("error_short_description", "Add a short description."))
                 else:
                     add_expense(expense_amount, expense_date, category, description, reflection)
-                    st.success("Expense added.")
+                    st.success(t.get("success_expense_added", "Expense added."))
                     st.rerun()
 
 st.divider()
 
 metric_cols = st.columns(5)
-metric_cols[0].metric("Monthly Income", currency(goal["monthly_income"]))
-metric_cols[1].metric("Income Received", currency(actual_income_received))
-metric_cols[2].metric("Savings Goal", currency(goal["target_savings"]))
-metric_cols[3].metric("Spent This Month", currency(total_spent))
-metric_cols[4].metric("Budget Left", currency(remaining_budget))
+metric_cols[0].metric(t.get("monthly_income_metric", "Monthly Income"), currency(goal["monthly_income"]))
+metric_cols[1].metric(t.get("income_received", "Income Received"), currency(actual_income_received))
+metric_cols[2].metric(t.get("savings_goal", "Savings Goal"), currency(goal["target_savings"]))
+metric_cols[3].metric(t.get("spent_this_month", "Spent This Month"), currency(total_spent))
+metric_cols[4].metric(t.get("budget_left", "Budget Left"), currency(remaining_budget))
 
-st.progress(progress, text=f"Projected savings: {currency(forecast_savings)}")
+st.progress(progress, text=t.get("projected_savings", "Projected savings: {amount}").format(amount=currency(forecast_savings)))
 
 if goal["monthly_income"] <= 0:
-    st.info("Add your monthly plan to unlock savings status.")
+    st.info(t.get("info_add_monthly_plan", "Add your monthly plan to unlock savings status."))
 elif forecast_savings >= goal["target_savings"]:
-    st.success("Savings status: On track")
+    st.success(t.get("savings_status_on_track", "Savings status: On track"))
 elif remaining_budget < 0:
-    st.error("Savings status: Over planned spending budget")
+    st.error(t.get("savings_status_over_budget", "Savings status: Over planned spending budget"))
 else:
-    st.warning("Savings status: Needs attention")
+    st.warning(t.get("savings_status_needs_attention", "Savings status: Needs attention"))
 
 dashboard_left, dashboard_right = st.columns([1.35, 0.85], gap="large")
 
 with dashboard_left:
     with st.container(border=True):
-        st.subheader("Spending Dashboard")
+        st.subheader(t.get("spending_dashboard", "Spending Dashboard"))
         if month_expenses.empty:
-            st.info("No expenses yet for this month. Add one from Quick Expense to start the dashboard.")
+            st.info(t.get(
+                "info_no_monthly_expenses",
+                "No expenses yet for this month. Add one from Quick Expense to start the dashboard.",
+            ))
         else:
             category_totals = (
                 month_expenses.groupby("category", as_index=False)["amount"].sum()
@@ -250,16 +255,16 @@ with dashboard_left:
                 st.plotly_chart(chart, width="stretch")
 
             with table_col:
-                st.markdown("**Category Totals**")
+                st.markdown(t.get("category_totals", "**Category Totals**"))
                 table = category_totals.rename(
-                    columns={"category": "Kakeibo Category", "amount": "Amount"}
+                    columns={"category": t.get("kakeibo_category", "Kakeibo Category"), "amount": t.get("amount", "Amount")}
                 )
                 table["Amount"] = table["Amount"].map(currency)
                 st.dataframe(table, hide_index=True, width="stretch")
 
 with dashboard_right:
     with st.container(border=True):
-        st.subheader("AI Coach")
+        st.subheader(t.get("ai_coach", "AI Coach"))
         for insight in generate_insights(
             month_expenses,
             float(goal["monthly_income"]),
@@ -267,23 +272,23 @@ with dashboard_right:
         ):
             st.info(insight)
 
-        st.subheader("Monthly Review")
+        st.subheader(t.get("monthly_review", "Monthly Review"))
         if month_expenses.empty:
-            st.write("Your review will appear after you add expenses.")
+            st.write(t.get("review_placeholder", "Your review will appear after you add expenses."))
         else:
             optional_extra = month_expenses[
                 month_expenses["category"].isin(["Optional (Wants)", "Extra (Unexpected)"])
             ]["amount"].sum()
-            st.write(f"Total spending: **{currency(total_spent)}**")
-            st.write(f"Optional + Extra spending: **{currency(optional_extra)}**")
+            st.write(t.get("total_spending", "Total spending: **{amount}**").format(amount=currency(total_spent)))
+            st.write(t.get("optional_extra_spending", "Optional + Extra spending: **{amount}**").format(amount=currency(optional_extra)))
             if forecast_savings >= goal["target_savings"]:
-                st.success("On track")
+                st.success(t.get("on_track", "On track"))
             else:
-                st.warning("Needs attention")
+                st.warning(t.get("needs_attention", "Needs attention"))
 
-st.subheader(t["income_history"])
+st.subheader(t.get("income_history", "Income History"))
 if incomes.empty:
-    st.write("No saved incomes yet.")
+    st.write(t.get("no_saved_incomes", "No saved incomes yet."))
 else:
     income_history = incomes.copy()
     income_history["date"] = income_history["date"].dt.strftime("%d/%m/%Y")
@@ -291,35 +296,38 @@ else:
     st.dataframe(
         income_history.rename(
             columns={
-                "date": "Date",
-                "time": "Time",
-                "source": "Source",
-                "amount": "Amount",
-                "notes": "Notes",
+                "date": t.get("date", "Date"),
+                "time": t.get("time", "Time"),
+                "source": t.get("source", "Source"),
+                "amount": t.get("amount", "Amount"),
+                "notes": t.get("notes", "Notes"),
             }
-        )[["Date", "Time", "Source", "Amount", "Notes"]],
+        )[[t.get("date", "Date"), t.get("time", "Time"), t.get("source", "Source"), t.get("amount", "Amount"), t.get("notes", "Notes")]],
         hide_index=True,
         width="stretch",
     )
 
 
 if st.session_state.get("pending_delete") and st.session_state["pending_delete"]["type"] == "income":
-    with st.modal("Confirm delete income"):
+    with st.modal(t.get("confirm_delete_income", "Confirm delete income")):
         st.warning(
-            f"Are you sure you want to delete this income entry?\n\n{st.session_state['pending_delete']['summary']}"
+            t.get(
+                "confirm_delete_income_message",
+                "Are you sure you want to delete this income entry?\n\n{summary}",
+            ).format(summary=st.session_state["pending_delete"]["summary"])
         )
-        if st.button("Yes, delete income", key="confirm_delete_income"):
+        if st.button(t.get("yes_delete_income", "Yes, delete income"), key="confirm_delete_income"):
             delete_income(st.session_state["pending_delete"]["id"])
             del st.session_state["pending_delete"]
-            st.success("Income entry deleted.")
+            st.success(t.get("income_entry_deleted", "Income entry deleted."))
             st.experimental_rerun()
-        if st.button("Cancel", key="cancel_delete_income"):
+        if st.button(t.get("cancel", "Cancel"), key="cancel_delete_income"):
             del st.session_state["pending_delete"]
 
-st.subheader(t["expense_history"])
+st.subheader(t.get("expense_history", "Expense History"))
 
 if expenses.empty:
-    st.write("No saved expenses yet.")
+    st.write(t.get("no_saved_expenses", "No saved expenses yet."))
 else:
     history = expenses.copy()
     history["date"] = history["date"].dt.strftime("%d/%m/%Y")
@@ -327,28 +335,30 @@ else:
     st.dataframe(
         history.rename(
             columns={
-                "date": "Date",
-                "time": "Time",
-                "description": "Description",
-                "category": "Category",
-                "amount": "Amount",
-                "reflection": "Reflection",
+                "date": t.get("date", "Date"),
+                "time": t.get("time", "Time"),
+                "description": t.get("description", "Description"),
+                "category": t.get("category", "Category"),
+                "amount": t.get("amount", "Amount"),
+                "reflection": t.get("reflection", "Reflection"),
             }
-        )[["Date", "Time", "Description", "Category", "Amount", "Reflection"]],
+        )[[t.get("date", "Date"), t.get("time", "Time"), t.get("description", "Description"), t.get("category", "Category"), t.get("amount", "Amount"), t.get("reflection", "Reflection")]],
         hide_index=True,
         width="stretch",
     )
-    
-    
+
 if st.session_state.get("pending_delete") and st.session_state["pending_delete"]["type"] == "expense":
-    with st.modal("Confirm delete expense"):
+    with st.modal(t.get("confirm_delete_expense", "Confirm delete expense")):
         st.warning(
-            f"Are you sure you want to delete this expense entry?\n\n{st.session_state['pending_delete']['summary']}"
+            t.get(
+                "confirm_delete_expense_message",
+                "Are you sure you want to delete this expense entry?\n\n{summary}",
+            ).format(summary=st.session_state["pending_delete"]["summary"])
         )
-        if st.button("Yes, delete expense", key="confirm_delete_expense"):
+        if st.button(t.get("yes_delete_expense", "Yes, delete expense"), key="confirm_delete_expense"):
             delete_expense(st.session_state["pending_delete"]["id"])
             del st.session_state["pending_delete"]
-            st.success("Expense entry deleted.")
+            st.success(t.get("expense_entry_deleted", "Expense entry deleted."))
             st.experimental_rerun()
-        if st.button("Cancel", key="cancel_delete_expense"):
+        if st.button(t.get("cancel", "Cancel"), key="cancel_delete_expense"):
             del st.session_state["pending_delete"]
