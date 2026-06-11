@@ -294,14 +294,15 @@ else:
         cols = st.columns([1.0, 0.8, 1.0, 0.8, 1.3, 0.6])
         cols[0].write(row["date"])
         cols[1].write(row["time"])
-        cols[2].write(row["Source"])
-        cols[3].write(row["Amount"])
-        cols[4].write(row["Notes"])
+        cols[2].write(row["source"])
+        cols[3].write(row["amount"])
+        cols[4].write(row["notes"])
+
         if cols[5].button("Delete", key=f"delete_income_{row['id']}"):
             st.session_state.pending_delete = {
                 "type": "income",
                 "id": int(row["id"]),
-                "summary": f"{row['Source']} - {row['Amount']} on {row['date']}",
+                "summary": f"{row['source']} - {row['amount']} on {row['date']}",
             }
 
 if st.session_state.get("pending_delete") and st.session_state["pending_delete"]["type"] == "income":
@@ -341,7 +342,7 @@ else:
 
     for _, row in history.iterrows():
         cols = st.columns([0.9, 0.7, 1.4, 0.9, 0.8, 0.8, 0.6])
-        cols[0].write(row["Date"])
+        cols[0].write(row["date"])
         cols[1].write(row["time"])
         cols[2].write(row["Description"])
         cols[3].write(row["Category"])
