@@ -79,9 +79,9 @@ actual_income_received = float(month_incomes["amount"].sum()) if not month_incom
 total_monthly_income = float(goal["monthly_income"]) + actual_income_received
 
 total_spent = float(month_expenses["amount"].sum()) if not month_expenses.empty else 0
-planned_spend = max(float(goal["monthly_income"]) - float(goal["target_savings"]), 0)
+planned_spend = max(total_monthly_income - float(goal["target_savings"]), 0)
 remaining_budget = planned_spend - total_spent
-forecast_savings = float(goal["monthly_income"]) - total_spent
+forecast_savings = total_monthly_income - total_spent
 progress = (
     0
     if goal["target_savings"] <= 0
@@ -269,7 +269,7 @@ with dashboard_right:
         st.subheader(t.get("ai_coach", "AI Coach"))
         for insight in generate_insights(
             month_expenses,
-            float(goal["monthly_income"]),
+            total_monthly_income,
             float(goal["target_savings"]),
         ):
             st.info(insight)
