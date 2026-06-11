@@ -1,3 +1,10 @@
+import sys
+import importlib
+
+# Force reload database module to prevent Streamlit caching/hot-reload ImportError
+if "database" in sys.modules:
+    importlib.reload(sys.modules["database"])
+
 from datetime import date
 import pandas as pd
 import plotly.express as px
