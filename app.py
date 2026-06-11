@@ -36,6 +36,9 @@ t = load_language(langs[selected])
 
 st.set_page_config(page_title=t.get("title", "KakeiboAI"), page_icon="₹", layout="wide")
 
+if "selected_date" not in st.session_state:
+    st.session_state["selected_date"] = pd.Timestamp.today().normalize()
+
 
 def category_color(category):
     return {
@@ -46,12 +49,11 @@ def category_color(category):
     }.get(category, "#828282")
 
 
-def current_month_items(rows):
+def selected_month_items(rows, target_date):
     if rows.empty:
         return rows
-    today = pd.Timestamp.today()
     return rows[
-        (rows["date"].dt.month == today.month) & (rows["date"].dt.year == today.year)
+        (rows["date"].dt.month == target_date.month) & (rows["date"].dt.year == target_date.year)
     ]
 
 
@@ -72,8 +74,8 @@ init_db()
 goal = get_goal()
 expenses = get_expenses()
 incomes = get_incomes()
-month_expenses = current_month_items(expenses)
-month_incomes = current_month_items(incomes)
+month_expenses = selected_month_items(expenses, st.session_state["selected_date"])
+month_incomes = selected_month_items(incomes, st.session_state["selected_date"])
 
 actual_income_received = float(month_incomes["amount"].sum()) if not month_incomes.empty else 0
 total_monthly_income = float(goal["monthly_income"]) + actual_income_received
@@ -88,14 +90,27 @@ progress = (
     else max(0, min(forecast_savings / goal["target_savings"], 1))
 )
 
-current_month_label = pd.Timestamp.today().strftime("%B %Y")
+selected_month_label = st.session_state["selected_date"].strftime("%B %Y")
 
-header_left, header_right = st.columns([0.72, 0.28], vertical_alignment="center")
+header_left, header_right = st.columns([0.7, 0.3], vertical_alignment="center")
 with header_left:
     st.title(t.get("title", "KakeiboAI"))
     st.caption(t.get("tagline", "Reflect. Save. Grow."))
 with header_right:
-    st.metric(t.get("current_month", "Current Month"), current_month_label)
+    btn_left, month_label_col, btn_right = st.columns([0.15, 0.7, 0.15], vertical_alignment="center")
+    with btn_left:
+        prev_month = st.button("◀", key="prev_month", use_container_width=True)
+    with month_label_col:
+        st.markdown(f"<h4 style='text-align: center; margin: 0;'>{selected_month_label}</h4>", unsafe_allow_html=True)
+    with btn_right:
+        next_month = st.button("▶", key="next_month", use_container_width=True)
+
+    if prev_month:
+        st.session_state["selected_date"] = st.session_state["selected_date"] - pd.DateOffset(months=1)
+        st.rerun()
+    if next_month:
+        st.session_state["selected_date"] = st.session_state["selected_date"] + pd.DateOffset(months=1)
+        st.rerun()
 
 plan_panel, income_panel, expense_panel = st.columns([0.85, 0.95, 1.1], gap="large")
 
