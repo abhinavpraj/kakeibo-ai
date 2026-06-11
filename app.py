@@ -91,7 +91,18 @@ total_monthly_income = float(goal["monthly_income"]) + actual_income_received
 total_spent = float(month_expenses["amount"].sum()) if not month_expenses.empty else 0
 planned_spend = max(total_monthly_income - float(goal["target_savings"]), 0)
 remaining_budget = planned_spend - total_spent
-forecast_savings = total_monthly_income - total_spent
+
+# Calculate projected savings using daily spend linear extrapolation for current month
+today_date = pd.Timestamp.today()
+selected_date = st.session_state["selected_date"]
+if selected_date.month == today_date.month and selected_date.year == today_date.year:
+    day_of_month = today_date.day
+    days_in_month = today_date.days_in_month
+    daily_spend = total_spent / day_of_month if day_of_month > 0 else 0
+    projected_spend = daily_spend * days_in_month
+    forecast_savings = total_monthly_income - projected_spend
+else:
+    forecast_savings = total_monthly_income - total_spent
 progress = (
     0
     if goal["target_savings"] <= 0

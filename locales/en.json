@@ -5,7 +5,7 @@
   "amount": "Amount",
   "amount_placeholder_expense": "₹ 250",
   "amount_placeholder_income": "₹ 2000",
-  "budget_left": "Budget Left",
+  "budget_left": "Remaining Spend Budget",
   "cancel": "Cancel",
   "category": "Category",
   "category_totals": "**Category Totals**",
