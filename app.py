@@ -191,7 +191,7 @@ with income_panel:
         with income_cols[0]:
             income_amount_input = st.text_input(t.get("amount", "Amount"), key="inc_amount", placeholder=t.get("amount_placeholder_income", "₹ 2000"))
         with income_cols[1]:
-            income_date = st.date_input(t.get("date", "Date"), value=default_form_date, format="DD/MM/YYYY")
+            income_date = st.date_input(t.get("date", "Date"), value=default_form_date, format="DD/MM/YYYY", key="inc_date")
         with income_cols[2]:
             income_source = st.selectbox(t.get("source", "Source"), INCOME_SOURCES, key="inc_source")
 
@@ -205,7 +205,7 @@ with income_panel:
             placeholder=t.get("notes_placeholder", "Rent for June, bonus payout, interest earned"),
         )
 
-        income_submitted = st.button(t.get("add_income", "Add income"), use_container_width=True)
+        income_submitted = st.button(t.get("add_income", "Add income"), use_container_width=True, key="btn_add_income")
         if income_submitted:
             income_amount = parse_money_input(income_amount_input)
             source_text = custom_source.strip() if income_source == "Other" else income_source
@@ -231,7 +231,7 @@ with expense_panel:
         with expense_cols[0]:
             expense_amount_input = st.text_input(t.get("amount", "Amount"), key="exp_amount", placeholder=t.get("amount_placeholder_expense", "₹ 250"))
         with expense_cols[1]:
-            expense_date = st.date_input(t.get("date", "Date"), value=default_form_date, format="DD/MM/YYYY")
+            expense_date = st.date_input(t.get("date", "Date"), value=default_form_date, format="DD/MM/YYYY", key="exp_date")
         with expense_cols[2]:
             category = st.selectbox(t.get("kakeibo_category", "Kakeibo category"), CATEGORIES, index=None, key="exp_category")
         description = st.text_input(
@@ -248,7 +248,7 @@ with expense_panel:
                 placeholder=t.get("reflection_placeholder", "Was this planned, necessary, or worth delaying?"),
             )
 
-        submitted = st.button(t.get("add_expense", "Add expense"), use_container_width=True)
+        submitted = st.button(t.get("add_expense", "Add expense"), use_container_width=True, key="btn_add_expense")
         if submitted:
             expense_amount = parse_money_input(expense_amount_input)
             if expense_amount is None:
