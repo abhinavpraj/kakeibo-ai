@@ -12,9 +12,9 @@ from database import (
     delete_income,
     get_expenses,
     get_incomes,
-    get_goal,
+    get_monthly_goal,
     init_db,
-    save_goal,
+    save_monthly_goal,
 )
 
 from i18n import load_language
@@ -71,7 +71,8 @@ def parse_money_input(value):
 
 
 init_db()
-goal = get_goal()
+selected_month_key = st.session_state["selected_date"].strftime("%Y-%m")
+goal = get_monthly_goal(selected_month_key)
 expenses = get_expenses()
 incomes = get_incomes()
 month_expenses = selected_month_items(expenses, st.session_state["selected_date"])
@@ -112,6 +113,14 @@ with header_right:
         st.session_state["selected_date"] = st.session_state["selected_date"] + pd.DateOffset(months=1)
         st.rerun()
 
+# Calculate default form date based on the selected month
+today_date = date.today()
+selected_date = st.session_state["selected_date"]
+if selected_date.month == today_date.month and selected_date.year == today_date.year:
+    default_form_date = today_date
+else:
+    default_form_date = date(selected_date.year, selected_date.month, 1)
+
 plan_panel, income_panel, expense_panel = st.columns([0.85, 0.95, 1.1], gap="large")
 
 with plan_panel:
@@ -137,7 +146,7 @@ with plan_panel:
                 elif target_savings > monthly_income:
                     st.error(t.get("error_savings_higher", "Savings goal cannot be higher than monthly income."))
                 else:
-                    save_goal(monthly_income, target_savings)
+                    save_monthly_goal(selected_month_key, monthly_income, target_savings)
                     st.success(t.get("success_monthly_plan_saved", "Monthly plan saved."))
                     st.rerun()
 
@@ -149,7 +158,7 @@ with income_panel:
             with income_cols[0]:
                 income_amount_input = st.text_input(t.get("amount", "Amount"), placeholder=t.get("amount_placeholder_income", "₹ 2000"))
             with income_cols[1]:
-                income_date = st.date_input(t.get("date", "Date"), value=date.today(), format="DD/MM/YYYY")
+                income_date = st.date_input(t.get("date", "Date"), value=default_form_date, format="DD/MM/YYYY")
             with income_cols[2]:
                 income_source = st.selectbox(t.get("source", "Source"), INCOME_SOURCES, index=0)
 
@@ -185,7 +194,7 @@ with expense_panel:
             with expense_cols[0]:
                 expense_amount_input = st.text_input(t.get("amount", "Amount"), placeholder=t.get("amount_placeholder_expense", "₹ 250"))
             with expense_cols[1]:
-                expense_date = st.date_input(t.get("date", "Date"), value=date.today(), format="DD/MM/YYYY")
+                expense_date = st.date_input(t.get("date", "Date"), value=default_form_date, format="DD/MM/YYYY")
             with expense_cols[2]:
                 category = st.selectbox(t.get("kakeibo_category", "Kakeibo category"), CATEGORIES, index=None)
             description = st.text_input(

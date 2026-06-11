@@ -83,6 +83,16 @@ def init_db():
             VALUES (1, 0, 0)
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS monthly_goals (
+                month_key TEXT PRIMARY KEY,
+                monthly_income REAL NOT NULL DEFAULT 0,
+                target_savings REAL NOT NULL DEFAULT 0,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
 
 
 def save_goal(monthly_income, target_savings):
@@ -102,6 +112,32 @@ def get_goal():
         row = conn.execute(
             "SELECT monthly_income, target_savings FROM goals WHERE id = 1"
         ).fetchone()
+    return {"monthly_income": row[0], "target_savings": row[1]}
+
+
+def save_monthly_goal(month_key, monthly_income, target_savings):
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO monthly_goals (month_key, monthly_income, target_savings, updated_at)
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(month_key) DO UPDATE SET
+                monthly_income = excluded.monthly_income,
+                target_savings = excluded.target_savings,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (month_key.strip(), float(monthly_income), float(target_savings)),
+        )
+
+
+def get_monthly_goal(month_key):
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT monthly_income, target_savings FROM monthly_goals WHERE month_key = ?",
+            (month_key.strip(),)
+        ).fetchone()
+    if row is None:
+        return {"monthly_income": 0.0, "target_savings": 0.0}
     return {"monthly_income": row[0], "target_savings": row[1]}
 
 
