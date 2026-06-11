@@ -335,7 +335,8 @@ else:
         hide_index=True,
         width="stretch",
     )
-
+    st.write("Columns:", history.columns.tolist())
+    st.write(history.head())
     for _, row in history.iterrows():
         cols = st.columns([1.0, 1.4, 1.0, 0.9, 0.9, 0.6])
         cols[0].write(row["Date"])
