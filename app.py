@@ -1,9 +1,8 @@
 from datetime import date
-
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-
+from insights import currency, generate_insights
 from database import (
     CATEGORIES,
     INCOME_SOURCES,
@@ -17,7 +16,20 @@ from database import (
     init_db,
     save_goal,
 )
-from insights import currency, generate_insights
+
+from i18n import load_language
+langs = {
+    "English": "en",
+    "हिन्दी": "hi",
+    "मराठी": "mr",
+    "తెలుగు": "te"
+}
+
+selected = st.sidebar.selectbox(
+    "🌐 Language",
+    list(langs.keys())
+)
+t = load_language(langs[selected])
 
 
 st.set_page_config(page_title="KakeiboAI", page_icon="₹", layout="wide")
@@ -77,8 +89,8 @@ current_month_label = pd.Timestamp.today().strftime("%B %Y")
 
 header_left, header_right = st.columns([0.72, 0.28], vertical_alignment="center")
 with header_left:
-    st.title("KakeiboAI")
-    st.caption("Reflect. Save. Grow.")
+    st.title(t["title"])
+    st.caption(t["tagline"])
 with header_right:
     st.metric("Current Month", current_month_label)
 
@@ -128,7 +140,7 @@ with income_panel:
                 custom_source = st.text_input("Custom source", placeholder="Freelance, gift, etc.")
 
             income_notes = st.text_input(
-                "Notes",
+                "notes",
                 placeholder="Rent for June, bonus payout, interest earned",
             )
 
@@ -159,7 +171,7 @@ with expense_panel:
             with expense_cols[2]:
                 category = st.selectbox("Kakeibo category", CATEGORIES, index=None)
             description = st.text_input(
-                "Description",
+                "description",
                 placeholder="Coffee, bus pass, online course",
             )
 
@@ -269,7 +281,7 @@ with dashboard_right:
             else:
                 st.warning("Needs attention")
 
-st.subheader("Income History")
+st.subheader("income_history")
 if incomes.empty:
     st.write("No saved incomes yet.")
 else:
@@ -304,7 +316,7 @@ if st.session_state.get("pending_delete") and st.session_state["pending_delete"]
         if st.button("Cancel", key="cancel_delete_income"):
             del st.session_state["pending_delete"]
 
-st.subheader("Expense History")
+st.subheader("expense_history")
 
 
 if expenses.empty:

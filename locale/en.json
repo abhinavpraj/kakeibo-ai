@@ -1,0 +1,15 @@
+{
+  "title": "KakeiboAI",
+  "dashboard": "Dashboard",
+  "expense_history": "Expense History",
+  "income_history": "Income History",
+  "add_expense": "Add Expense",
+  "add_income": "Add Income",
+  "amount": "Amount",
+  "category": "Category",
+  "description": "Description",
+  "notes": "Notes",
+  "save": "Save",
+  "tagline" : "Reflect. Save. Grow.",
+  "current_month": "Current Month"
+}
