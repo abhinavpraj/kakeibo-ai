@@ -315,7 +315,7 @@ with dashboard_left:
                     color="category",
                     color_discrete_map={category: category_color(category) for category in CATEGORIES},
                 )
-                chart.update_traces(textposition="inside", textinfo="percent+label")
+                chart.update_traces(textposition="inside", textinfo="percent+label", insidetextorientation="horizontal")
                 chart.update_layout(
                     showlegend=False,
                     margin=dict(l=0, r=0, t=10, b=10),
