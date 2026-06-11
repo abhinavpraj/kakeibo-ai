@@ -1,15 +1,16 @@
-import sys
 import importlib
+import sys
 
 # Force reload database module to prevent Streamlit caching/hot-reload ImportError
 if "database" in sys.modules:
     importlib.reload(sys.modules["database"])
 
 from datetime import date
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-from insights import currency, generate_insights
+
 from database import (
     CATEGORIES,
     INCOME_SOURCES,
@@ -23,8 +24,9 @@ from database import (
     init_db,
     save_monthly_goal,
 )
-
 from i18n import load_language
+from insights import currency, generate_insights
+
 langs = {
     "English": "en",
     "हिन्दी": "hi",

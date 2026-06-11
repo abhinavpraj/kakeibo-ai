@@ -1,10 +1,10 @@
 import sqlite3
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-IST = timezone(timedelta(hours=5, minutes=30))
-
 import pandas as pd
+
+IST = timezone(timedelta(hours=5, minutes=30))
 
 
 DB_PATH = Path(__file__).with_name("kakeibo.db")
