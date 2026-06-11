@@ -289,10 +289,10 @@ else:
         hide_index=True,
         width="stretch",
     )
-
+    st.write(income_history.columns.tolist())
     for _, row in income_history.iterrows():
         cols = st.columns([1.0, 0.8, 1.0, 0.8, 1.3, 0.6])
-        cols[0].write(row["Date"])
+        cols[0].write(row["date"])
         cols[1].write(row["time"])
         cols[2].write(row["Source"])
         cols[3].write(row["Amount"])
@@ -301,7 +301,7 @@ else:
             st.session_state.pending_delete = {
                 "type": "income",
                 "id": int(row["id"]),
-                "summary": f"{row['Source']} - {row['Amount']} on {row['Date']}",
+                "summary": f"{row['Source']} - {row['Amount']} on {row['date']}",
             }
 
 if st.session_state.get("pending_delete") and st.session_state["pending_delete"]["type"] == "income":
@@ -327,14 +327,14 @@ else:
     st.dataframe(
         history.rename(
             columns={
-                "date": "Date",
+                "date": "date",
                 "time": "Time",
                 "description": "Description",
                 "category": "Category",
                 "amount": "Amount",
                 "reflection": "Reflection",
             }
-        )[["Date", "Time", "Description", "Category", "Amount", "Reflection"]],
+        )[["date", "Time", "Description", "Category", "Amount", "Reflection"]],
         hide_index=True,
         width="stretch",
     )
