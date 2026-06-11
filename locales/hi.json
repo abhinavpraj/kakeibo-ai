@@ -11,5 +11,11 @@
   "notes": "टिप्पणियाँ",
   "save": "सहेजें",
   "tagline": "चिंतन करें। बचाएं। बढ़ें।",
-  "current_month": "वर्तमान महीना"
+  "current_month": "वर्तमान महीना",
+  "monthly_plan": "मासिक योजना",
+  "fixed_monthly_income": "निश्चित मासिक आय",
+  "savings_goal": "बचत कल्याण",
+  "quick_income": "त्वरित आय",
+  "quick_expense": "त्वरित खर्च"
+
 }

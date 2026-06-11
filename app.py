@@ -98,7 +98,7 @@ plan_panel, income_panel, expense_panel = st.columns([0.85, 0.95, 1.1], gap="lar
 
 with plan_panel:
     with st.container(border=True):
-        st.subheader("Monthly Plan")
+        st.subheader(t["monthly_plan"])
         with st.form("goal_form"):
             monthly_income_input = st.text_input(
                 "Fixed Monthly Income",
@@ -281,7 +281,7 @@ with dashboard_right:
             else:
                 st.warning("Needs attention")
 
-st.subheader("income_history")
+st.subheader(t["income_history"])
 if incomes.empty:
     st.write("No saved incomes yet.")
 else:
@@ -316,8 +316,7 @@ if st.session_state.get("pending_delete") and st.session_state["pending_delete"]
         if st.button("Cancel", key="cancel_delete_income"):
             del st.session_state["pending_delete"]
 
-st.subheader("expense_history")
-
+st.subheader(t["expense_history"])
 
 if expenses.empty:
     st.write("No saved expenses yet.")

@@ -11,5 +11,10 @@
   "notes": "नोंदी",
   "save": "जतन करा",
   "tagline": "चिंतन करा. बचत करा. वाढणा.",
-  "current_month": "चालू महिना"
+  "current_month": "चालू महिना",
+  "monthly_plan": "मासिक योजना",
+  "fixed_monthly_income": "निश्चित मासिक आय",
+  "savings_goal": "बचत लक्ष्य",
+  "quick_income": "झटपट उत्पन्न",
+  "quick_expense": "झटपट खर्च"
 }

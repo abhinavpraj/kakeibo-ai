@@ -11,5 +11,10 @@
   "notes": "Notes",
   "save": "Save",
   "tagline" : "Reflect. Save. Grow.",
-  "current_month": "Current Month"
+  "current_month": "Current Month",
+  "monthly_plan": "Monthly Plan",
+  "fixed_monthly_income": "Fixed Monthly Income",
+  "savings_goal": "Savings Goal",
+  "quick_income": "Quick Income",
+  "quick_expense": "Quick Expense"
 }

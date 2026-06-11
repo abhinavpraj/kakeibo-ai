@@ -11,5 +11,10 @@
   "notes": "గమనికలు",
   "save": "సేవ్ చేయండి",
   "tagline": "ప్రతిబింబించండి. సేవ్ చేయండి. పెరుగండి.",
-  "current_month": "ప్రస్తుత నెల"
+  "current_month": "ప్రస్తుత నెల",
+  "monthly_plan": "మాసిక ప్రణాళిక",
+  "fixed_monthly_income": "నిర్ధిష్ట మాసిక ఆదాయం",
+  "savings_goal": "సేవింగ్స్ లక్ష్యం",
+  "quick_income": "త్వరిత ఆదాయం",
+  "quick_expense": "త్వరిత ఖర్చు"
 }
