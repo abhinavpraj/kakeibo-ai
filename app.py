@@ -289,21 +289,7 @@ else:
         hide_index=True,
         width="stretch",
     )
-    st.write(income_history.columns.tolist())
-    for _, row in income_history.iterrows():
-        cols = st.columns([1.0, 0.8, 1.0, 0.8, 1.3, 0.6])
-        cols[0].write(row["date"])
-        cols[1].write(row["time"])
-        cols[2].write(row["source"])
-        cols[3].write(row["amount"])
-        cols[4].write(row["notes"])
 
-        if cols[5].button("Delete", key=f"delete_income_{row['id']}"):
-            st.session_state.pending_delete = {
-                "type": "income",
-                "id": int(row["id"]),
-                "summary": f"{row['source']} - {row['amount']} on {row['date']}",
-            }
 
 if st.session_state.get("pending_delete") and st.session_state["pending_delete"]["type"] == "income":
     with st.modal("Confirm delete income"):
@@ -319,6 +305,8 @@ if st.session_state.get("pending_delete") and st.session_state["pending_delete"]
             del st.session_state["pending_delete"]
 
 st.subheader("Expense History")
+
+
 if expenses.empty:
     st.write("No saved expenses yet.")
 else:
@@ -328,34 +316,19 @@ else:
     st.dataframe(
         history.rename(
             columns={
-                "date": "date",
+                "date": "Date",
                 "time": "Time",
                 "description": "Description",
                 "category": "Category",
                 "amount": "Amount",
                 "reflection": "Reflection",
             }
-        )[["date", "Time", "Description", "Category", "Amount", "Reflection"]],
+        )[["Date", "Time", "Description", "Category", "Amount", "Reflection"]],
         hide_index=True,
         width="stretch",
     )
-    st.write("Columns:", history.columns.tolist())
-    st.write(history.head())
-    for _, row in history.iterrows():
-        cols = st.columns([0.9, 0.7, 1.4, 0.9, 0.8, 0.8, 0.6])
-        cols[0].write(row["date"])
-        cols[1].write(row["time"])
-        cols[2].write(row["Description"])
-        cols[3].write(row["Category"])
-        cols[4].write(row["Amount"])
-        cols[5].write(row["Reflection"])
-        if cols[6].button("Delete", key=f"delete_expense_{row['id']}"):
-            st.session_state.pending_delete = {
-                "type": "expense",
-                "id": int(row["id"]),
-                "summary": f"{row['Description']} - {row['Amount']} on {row['Date']}",
-            }
-
+    
+    
 if st.session_state.get("pending_delete") and st.session_state["pending_delete"]["type"] == "expense":
     with st.modal("Confirm delete expense"):
         st.warning(
