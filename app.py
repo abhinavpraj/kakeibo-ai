@@ -49,6 +49,20 @@ if "selected_date" not in st.session_state:
     st.session_state["selected_date"] = pd.Timestamp.today().normalize()
 
 # Initialize session state keys for inputs
+if st.session_state.get("clear_income_inputs"):
+    st.session_state["inc_amount"] = ""
+    st.session_state["inc_custom_source"] = ""
+    st.session_state["inc_notes"] = ""
+    st.session_state["inc_source"] = "Salary"
+    del st.session_state["clear_income_inputs"]
+
+if st.session_state.get("clear_expense_inputs"):
+    st.session_state["exp_amount"] = ""
+    st.session_state["exp_desc"] = ""
+    st.session_state["exp_reflection"] = ""
+    st.session_state["exp_category"] = None
+    del st.session_state["clear_expense_inputs"]
+
 for key, default in [
     ("exp_amount", ""),
     ("exp_desc", ""),
@@ -217,11 +231,8 @@ with income_panel:
                 st.error(t.get("error_choose_income_source", "Choose or enter an income source."))
             else:
                 add_income(income_amount, income_date, source_text, income_notes)
+                st.session_state["clear_income_inputs"] = True
                 st.success(t.get("success_income_added", "Income added."))
-                st.session_state["inc_amount"] = ""
-                st.session_state["inc_custom_source"] = ""
-                st.session_state["inc_notes"] = ""
-                st.session_state["inc_source"] = "Salary"
                 st.rerun()
 
 with expense_panel:
@@ -261,11 +272,8 @@ with expense_panel:
                 st.error(t.get("error_short_description", "Add a short description."))
             else:
                 add_expense(expense_amount, expense_date, category, description, reflection)
+                st.session_state["clear_expense_inputs"] = True
                 st.success(t.get("success_expense_added", "Expense added."))
-                st.session_state["exp_amount"] = ""
-                st.session_state["exp_desc"] = ""
-                st.session_state["exp_reflection"] = ""
-                st.session_state["exp_category"] = None
                 st.rerun()
 
 st.divider()
