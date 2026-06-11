@@ -76,6 +76,7 @@ month_expenses = current_month_items(expenses)
 month_incomes = current_month_items(incomes)
 
 actual_income_received = float(month_incomes["amount"].sum()) if not month_incomes.empty else 0
+total_monthly_income = float(goal["monthly_income"]) + actual_income_received
 
 total_spent = float(month_expenses["amount"].sum()) if not month_expenses.empty else 0
 planned_spend = max(float(goal["monthly_income"]) - float(goal["target_savings"]), 0)
@@ -202,12 +203,13 @@ with expense_panel:
 
 st.divider()
 
-metric_cols = st.columns(5)
+metric_cols = st.columns(6)
 metric_cols[0].metric(t.get("monthly_income_metric", "Monthly Income"), currency(goal["monthly_income"]))
 metric_cols[1].metric(t.get("income_received", "Income Received"), currency(actual_income_received))
-metric_cols[2].metric(t.get("savings_goal", "Savings Goal"), currency(goal["target_savings"]))
-metric_cols[3].metric(t.get("spent_this_month", "Spent This Month"), currency(total_spent))
-metric_cols[4].metric(t.get("budget_left", "Budget Left"), currency(remaining_budget))
+metric_cols[2].metric(t.get("total_monthly_income", "Total Monthly Income"), currency(total_monthly_income))
+metric_cols[3].metric(t.get("savings_goal", "Savings Goal"), currency(goal["target_savings"]))
+metric_cols[4].metric(t.get("spent_this_month", "Spent This Month"), currency(total_spent))
+metric_cols[5].metric(t.get("budget_left", "Budget Left"), currency(remaining_budget))
 
 st.progress(progress, text=t.get("projected_savings", "Projected savings: {amount}").format(amount=currency(forecast_savings)))
 
