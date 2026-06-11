@@ -1,6 +1,8 @@
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+IST = timezone(timedelta(hours=5, minutes=30))
 
 import pandas as pd
 
@@ -145,7 +147,7 @@ def add_expense(amount, date, category, description, reflection=""):
     if category not in CATEGORIES:
         raise ValueError("Expense category must be one of the Kakeibo categories.")
 
-    entry_time = datetime.now().strftime("%H:%M:%S")
+    entry_time = datetime.now(IST).strftime("%H:%M:%S")
     with get_connection() as conn:
         conn.execute(
             """
@@ -184,7 +186,7 @@ def add_income(amount, date, source, notes=""):
     if float(amount) <= 0:
         raise ValueError("Income amount must be greater than zero.")
 
-    entry_time = datetime.now().strftime("%H:%M:%S")
+    entry_time = datetime.now(IST).strftime("%H:%M:%S")
     with get_connection() as conn:
         conn.execute(
             """
