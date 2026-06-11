@@ -227,3 +227,107 @@ Built as part of Hackathon 2 under Swecha Internship- Summer of 2026.
 ## Security
 
 Please refer to [SECURITY.md](SECURITY.md) for information about reporting vulnerabilities and responsible disclosure.
+
+## Installation
+
+### Prerequisites
+
+* Python 3.10+
+* pip
+* Git
+
+### Clone the Repository
+
+```bash
+git clone <repository-url>
+cd kakeiboAI
+```
+
+### Create a Virtual Environment
+
+```bash
+python -m venv .venv
+source .venv/bin/activate      # Linux/macOS
+# .venv\Scripts\activate       # Windows
+```
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Run the Application
+
+```bash
+streamlit run app.py
+```
+
+The application will be available at:
+
+```text
+http://localhost:8501
+```
+
+## Usage
+
+### Set Your Monthly Plan
+
+1. Enter your monthly income.
+2. Set a savings goal.
+3. Save your plan.
+
+### Record Expenses
+
+1. Navigate to the expense section.
+2. Enter amount, category, description, and reflection.
+3. Submit to save the expense.
+
+### Record Income
+
+1. Navigate to the income section.
+2. Enter amount, source, and notes.
+3. Submit to save the income record.
+
+### Review Insights
+
+* View monthly spending trends.
+* Monitor savings progress.
+* Receive AI-generated financial insights.
+* Analyze spending patterns across categories.
+
+### Change Language
+
+Use the language selector in the sidebar to switch between:
+
+* English
+* हिन्दी (Hindi)
+* मराठी (Marathi)
+* తెలుగు (Telugu)
+
+## Contributing
+
+Contributions are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+
+```bash
+git checkout -b feature/my-feature
+```
+
+3. Commit your changes.
+
+```bash
+git commit -m "feat: add my feature"
+```
+
+4. Push your branch.
+
+```bash
+git push origin feature/my-feature
+```
+
+5. Open a Pull Request describing your changes.
+
+Please ensure code changes are tested and documented before submission.
