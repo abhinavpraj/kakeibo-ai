@@ -135,12 +135,13 @@ Reflection Prompt:
 
 ### Application Framework
 
-- Python
-- Streamlit
+- Frontend: Streamlit
+- Backend: Python
 
 ### Database
 
 - SQLite
+- Supabase for Feedback collection
 
 ### Data Processing & Analytics
 
@@ -151,12 +152,10 @@ Reflection Prompt:
 
 - Plotly
 
-### AI Layer
+### AI Agents
 
-- Spending Pattern Analysis
-- Reflection Generation
-- Savings Forecasting
-- Personalized Financial Insights
+- Ollama (Local)
+- Google Gemini (BYOK)
 
 ### Development Tools
 
@@ -166,8 +165,7 @@ Reflection Prompt:
 
 ### Deployment
 
-- Streamlit Community Cloud (optional)
-- or Vercel
+- Streamlit Community Cloud
 - Local deployment for hackathon demonstration
 
 ## Run Locally
