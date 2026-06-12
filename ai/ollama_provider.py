@@ -16,8 +16,10 @@ def generate(prompt: str) -> str:
         return "Error: Local Ollama request timed out (30 seconds limit). Please ensure your local Ollama server is responding."
     except requests.exceptions.ConnectionError:
         return (
-            "Error: Could not connect to local Ollama server. "
-            "Please ensure Ollama is installed and running (`ollama serve`), and you have pulled the model (`ollama pull llama3`)."
+            "Error: Could not connect to local Ollama server at http://localhost:11434. "
+            "Note: If you are using the deployed app on Streamlit Cloud, it cannot access your Mac's localhost. "
+            "To use Ollama, you must run the app locally (`streamlit run app.py`). "
+            "Alternatively, switch to 'Gemini (BYOK)' in the sidebar to run the app in the cloud, or ensure Ollama is running locally (`ollama serve`) and you have run `ollama pull llama3`."
         )
     except Exception as e:
         return f"Error: An unexpected error occurred while communicating with Ollama: {str(e)}"
