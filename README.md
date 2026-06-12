@@ -331,3 +331,35 @@ git push origin feature/my-feature
 5. Open a Pull Request describing your changes.
 
 Please ensure code changes are tested and documented before submission.
+
+---
+
+## AI Features
+
+KakeiboAI includes an AI assistant that analyzes your monthly spending and offers Kakeibo-based mindful financial advice. You can chat with it dynamically or trigger predefined analysis actions.
+
+### Local AI Inference (Default)
+We prioritize privacy and run AI inference locally.
+* **Provider**: Ollama
+* **Default Model**: `llama3`
+
+To set up local inference:
+1. Install [Ollama](https://ollama.com).
+2. Download the `llama3` model:
+   ```bash
+   ollama pull llama3
+   ```
+3. Start the Ollama daemon:
+   ```bash
+   ollama serve
+   ```
+
+### Cloud AI (Gemini BYOK)
+If you prefer cloud models or do not have enough GPU power to run a local model, KakeiboAI supports **Bring Your Own Key (BYOK)** for Google Gemini.
+* **Provider**: Google Gemini
+* **Default Model**: `gemini-1.5-flash`
+
+### Switching Providers
+1. Open the **🤖 AI Settings** panel in the Streamlit sidebar.
+2. Select your preferred provider (Ollama or Gemini).
+3. If you select Gemini, input your **Gemini API Key**. The key is stored in memory (`st.session_state`) and is never saved or leaked.

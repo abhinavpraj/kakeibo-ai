@@ -29,13 +29,49 @@ from insights import currency, generate_insights
 
 langs = {"English": "en", "हिन्दी": "hi", "मराठी": "mr", "తెలుగు": "te"}
 
+# Default load language to configure page title first
 t = load_language("en")
+
+st.set_page_config(page_title="KakeiboAI", page_icon="₹", layout="wide")
 
 selected = st.sidebar.selectbox(t.get("language", "🌐 Language"), list(langs.keys()))
 t = load_language(langs[selected])
 
+# AI Settings Section in Sidebar
+st.sidebar.divider()
+st.sidebar.subheader(t.get("ai_settings", "🤖 AI Settings"))
 
-st.set_page_config(page_title=t.get("title", "KakeiboAI"), page_icon="₹", layout="wide")
+st.sidebar.markdown(
+    "**Ollama**: " + t.get("ollama_help", "Local/private inference") + "\n\n"
+    "**Gemini**: " + t.get("gemini_help", "Bring Your Own API Key (BYOK)")
+)
+
+provider_options = ["Ollama (Local)", "Gemini (BYOK)"]
+if "ai_provider" not in st.session_state:
+    st.session_state["ai_provider"] = "Ollama"
+
+default_provider_index = 0 if st.session_state["ai_provider"] == "Ollama" else 1
+selected_provider_label = st.sidebar.selectbox(
+    t.get("ai_provider_label", "Provider"),
+    provider_options,
+    index=default_provider_index,
+)
+
+st.session_state["ai_provider"] = (
+    "Ollama" if selected_provider_label == "Ollama (Local)" else "Gemini"
+)
+
+if st.session_state["ai_provider"] == "Gemini":
+    if "api_key" not in st.session_state:
+        st.session_state["api_key"] = ""
+    st.session_state["api_key"] = st.sidebar.text_input(
+        t.get("gemini_api_key_label", "Gemini API Key"),
+        value=st.session_state["api_key"],
+        type="password",
+    )
+else:
+    if "api_key" not in st.session_state:
+        st.session_state["api_key"] = ""
 
 if "selected_date" not in st.session_state:
     st.session_state["selected_date"] = pd.Timestamp.today().normalize()
@@ -67,6 +103,9 @@ for key, default in [
 ]:
     if key not in st.session_state:
         st.session_state[key] = default
+
+if "chat_messages" not in st.session_state:
+    st.session_state["chat_messages"] = []
 
 
 def category_color(category):
@@ -615,3 +654,128 @@ if (
             st.experimental_rerun()
         if st.button(t.get("cancel", "Cancel"), key="cancel_delete_expense"):
             del st.session_state["pending_delete"]
+
+# ==========================================
+# CHAT WITH YOUR FINANCES & QUICK ACTIONS
+# ==========================================
+st.divider()
+st.subheader(t.get("chat_title", "🤖 Ask KakeiboAI"))
+
+# Display active provider
+active_provider_label = (
+    "Local AI (Ollama)"
+    if st.session_state["ai_provider"] == "Ollama"
+    else "Gemini BYOK"
+)
+st.caption(
+    f"{t.get('active_ai_engine', 'Active AI Engine:')} **{active_provider_label}**"
+)
+
+# Display example prompts
+st.markdown(
+    f"*{t.get('chat_examples_label', 'Try asking:')}*\n"
+    f"- *How can I save more money?*\n"
+    f"- *What category am I overspending in?*\n"
+    f"- *Analyze my spending habits.*\n"
+    f"- *Can I reach my savings goal?*"
+)
+
+# Render Quick Actions
+col1, col2, col3, col4 = st.columns(4)
+quick_prompt = None
+
+with col1:
+    if st.button(
+        "📊 " + t.get("spending_analysis", "Spending Analysis"),
+        use_container_width=True,
+    ):
+        quick_prompt = "Provide a detailed analysis of my spending by category, highlighting any unusual or high spending."
+
+with col2:
+    if st.button(
+        "💡 " + t.get("savings_advice", "Savings Advice"), use_container_width=True
+    ):
+        quick_prompt = "Given my monthly income and savings goal, what actionable advice can you give me to save more money?"
+
+with col3:
+    if st.button(
+        "📈 " + t.get("monthly_review", "Monthly Review"), use_container_width=True
+    ):
+        quick_prompt = "Provide a comprehensive review of my finances for this month, assessing if I am on track."
+
+with col4:
+    if st.button(
+        "⚠️ " + t.get("spending_risks", "Spending Risks"), use_container_width=True
+    ):
+        quick_prompt = "Identify potential spending risks or bad habits based on my current logs and reflections."
+
+# Handle Quick Actions trigger
+if quick_prompt:
+    st.session_state["chat_messages"].append(
+        {"role": "user", "content": f"Request: {quick_prompt}"}
+    )
+
+    from ai.context_builder import build_financial_context
+
+    context = build_financial_context(st.session_state["selected_date"])
+
+    system_prompt = (
+        "You are KakeiboAI, a personal finance coach based on the Japanese Kakeibo methodology (mindful spending, reflection, and saving). "
+        "Use the following financial context to answer the user's request. Be encouraging, precise, and practical.\n\n"
+        f"--- FINANCIAL CONTEXT ---\n{context}\n-------------------------\n\n"
+        f"User Request: {quick_prompt}"
+    )
+
+    with st.spinner(t.get("ai_thinking", "KakeiboAI is thinking...")):
+        from ai.provider import ask_ai
+
+        response = ask_ai(
+            provider=st.session_state["ai_provider"],
+            prompt=system_prompt,
+            api_key=st.session_state.get("api_key"),
+        )
+        st.session_state["chat_messages"].append(
+            {"role": "assistant", "content": response}
+        )
+    st.experimental_rerun()
+
+# Display Chat History
+for message in st.session_state["chat_messages"]:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# Handle Chat Input
+user_input = st.chat_input(
+    t.get("chat_input_placeholder", "Ask KakeiboAI about your finances...")
+)
+if user_input:
+    st.session_state["chat_messages"].append({"role": "user", "content": user_input})
+
+    from ai.context_builder import build_financial_context
+
+    context = build_financial_context(st.session_state["selected_date"])
+
+    system_prompt = (
+        "You are KakeiboAI, a personal finance coach based on the Japanese Kakeibo methodology (mindful spending, reflection, and saving). "
+        "Use the following financial context to answer the user's question. Be encouraging, precise, and practical.\n\n"
+        f"--- FINANCIAL CONTEXT ---\n{context}\n-------------------------\n\n"
+        f"User Question: {user_input}"
+    )
+
+    # Render user message immediately
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    with st.chat_message("assistant"):
+        with st.spinner(t.get("ai_thinking", "KakeiboAI is thinking...")):
+            from ai.provider import ask_ai
+
+            response = ask_ai(
+                provider=st.session_state["ai_provider"],
+                prompt=system_prompt,
+                api_key=st.session_state.get("api_key"),
+            )
+            st.markdown(response)
+
+    st.session_state["chat_messages"].append({"role": "assistant", "content": response})
+    st.experimental_rerun()
