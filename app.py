@@ -603,7 +603,7 @@ if (
             delete_income(st.session_state["pending_delete"]["id"])
             del st.session_state["pending_delete"]
             st.success(t.get("income_entry_deleted", "Income entry deleted."))
-            st.experimental_rerun()
+            st.rerun()
         if st.button(t.get("cancel", "Cancel"), key="cancel_delete_income"):
             del st.session_state["pending_delete"]
 
@@ -651,7 +651,7 @@ if (
             delete_expense(st.session_state["pending_delete"]["id"])
             del st.session_state["pending_delete"]
             st.success(t.get("expense_entry_deleted", "Expense entry deleted."))
-            st.experimental_rerun()
+            st.rerun()
         if st.button(t.get("cancel", "Cancel"), key="cancel_delete_expense"):
             del st.session_state["pending_delete"]
 
@@ -737,7 +737,7 @@ if quick_prompt:
         st.session_state["chat_messages"].append(
             {"role": "assistant", "content": response}
         )
-    st.experimental_rerun()
+    st.rerun()
 
 # Display Chat History
 for message in st.session_state["chat_messages"]:
@@ -778,4 +778,4 @@ if user_input:
             st.markdown(response)
 
     st.session_state["chat_messages"].append({"role": "assistant", "content": response})
-    st.experimental_rerun()
+    st.rerun()
