@@ -1,2 +1,2 @@
 [bandit]
-exclude_dirs = .venv,tests
+exclude = .venv,.git,__pycache__
