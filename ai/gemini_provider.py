@@ -11,7 +11,55 @@ def generate(prompt: str, api_key: str) -> str:
 
     try:
         genai.configure(api_key=api_key.strip())
-        model = genai.GenerativeModel(DEFAULT_GEMINI_MODEL)
+
+        # Dynamically discover the best available model supporting generateContent
+        model_name = DEFAULT_GEMINI_MODEL
+        try:
+            available_models = list(genai.list_models())
+            supported_models = [
+                m.name
+                for m in available_models
+                if "generateContent" in m.supported_generation_methods
+            ]
+            # Clean names (remove prefix like 'models/')
+            clean_names = [m.replace("models/", "") for m in supported_models]
+
+            # Check if default model (gemini-1.5-flash) is directly supported
+            if DEFAULT_GEMINI_MODEL in clean_names:
+                model_name = DEFAULT_GEMINI_MODEL
+            else:
+                # Priority: newer or different flash models
+                priorities = [
+                    "gemini-2.5-flash",
+                    "gemini-3.5-flash",
+                    "gemini-2.0-flash",
+                    "gemini-1.5-flash",
+                ]
+                matched = False
+                for p in priorities:
+                    if p in clean_names:
+                        model_name = p
+                        matched = True
+                        break
+
+                if not matched:
+                    # Look for any model with 'flash'
+                    flash_models = [m for m in clean_names if "flash" in m]
+                    if flash_models:
+                        model_name = flash_models[0]
+                    else:
+                        # Look for any 'pro' models
+                        pro_models = [m for m in clean_names if "pro" in m]
+                        if pro_models:
+                            model_name = pro_models[0]
+                        elif clean_names:
+                            # Default to the first available model that supports generation
+                            model_name = clean_names[0]
+        except Exception:
+            # If list_models fails (e.g. permission/network issue), fallback to the config default
+            pass
+
+        model = genai.GenerativeModel(model_name)
         response = model.generate_content(prompt)
         if not response or not hasattr(response, "text"):
             return "Error: Empty or invalid response returned from Gemini API."
