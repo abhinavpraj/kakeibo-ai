@@ -267,6 +267,19 @@ def init_db():
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                rating INTEGER NOT NULL,
+                usefulness_rating INTEGER,
+                comments TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
 
 
 def save_goal(user_id, monthly_income, target_savings):
@@ -422,3 +435,64 @@ def delete_expense(user_id, expense_id):
             "DELETE FROM expenses WHERE id = ? AND user_id = ?",
             (int(expense_id), int(user_id)),
         )
+
+
+def save_feedback(user_id, rating, usefulness_rating, comments):
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO feedback (user_id, rating, usefulness_rating, comments)
+            VALUES (?, ?, ?, ?)
+            """,
+            (int(user_id), int(rating), int(usefulness_rating), comments.strip()),
+        )
+
+
+def get_all_feedback(limit=10):
+    with get_connection() as conn:
+        feedback_df = pd.read_sql_query(
+            f"""
+            SELECT f.rating, f.usefulness_rating, f.comments, f.created_at, u.username
+            FROM feedback f
+            JOIN users u ON f.user_id = u.id
+            ORDER BY f.created_at DESC
+            LIMIT {int(limit)}
+            """,
+            conn,
+        )
+    return feedback_df
+
+
+def get_feedback_stats():
+    with get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT
+                COUNT(*),
+                AVG(rating),
+                AVG(usefulness_rating),
+                SUM(CASE WHEN rating >= 4 THEN 1 ELSE 0 END)
+            FROM feedback
+            """
+        ).fetchone()
+
+    if not row or row[0] == 0:
+        return {
+            "total_reviews": 0,
+            "avg_rating": 0.0,
+            "avg_usefulness_rating": 0.0,
+            "satisfaction_pct": 0.0,
+        }
+
+    total = row[0]
+    avg_rating = row[1] or 0.0
+    avg_usefulness = row[2] or 0.0
+    high_ratings = row[3] or 0
+    satisfaction_pct = (high_ratings / total) * 100.0
+
+    return {
+        "total_reviews": total,
+        "avg_rating": avg_rating,
+        "avg_usefulness_rating": avg_usefulness,
+        "satisfaction_pct": satisfaction_pct,
+    }

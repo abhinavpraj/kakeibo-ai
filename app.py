@@ -231,6 +231,47 @@ with header_right:
         ] + pd.DateOffset(months=1)
         st.rerun()
 
+# Feedback expander (only shown if logged in)
+if st.session_state.get("authenticated"):
+    with st.expander("⭐ Give Feedback - Share your experience with KakeiboAI"):
+        st.write("How would you rate KakeiboAI?")
+        rating_idx = st.feedback("stars", key="feedback_stars")
+
+        st.slider(
+            "How useful was the AI financial coach feature?",
+            min_value=1,
+            max_value=5,
+            value=3,
+            key="feedback_usefulness",
+        )
+
+        st.text_area(
+            "Comments (Optional)",
+            placeholder="What did you like or what can be improved?",
+            key="feedback_comments",
+        )
+
+        if st.button("Submit Feedback", key="btn_submit_feedback"):
+            if rating_idx is None:
+                st.error("Please select a star rating first.")
+            else:
+                rating = rating_idx + 1
+                usefulness = st.session_state.get("feedback_usefulness", 3)
+                comments = st.session_state.get("feedback_comments", "")
+
+                from database import save_feedback
+
+                save_feedback(user_id, rating, usefulness, comments)
+
+                # Reset inputs in session state
+                st.session_state["feedback_stars"] = None
+                st.session_state["feedback_usefulness"] = 3
+                st.session_state["feedback_comments"] = ""
+
+                st.success("Thank you for your feedback!")
+                st.rerun()
+
+
 # Calculate default form date based on the selected month
 today_date = date.today()
 selected_date = st.session_state["selected_date"]
@@ -699,6 +740,52 @@ if (
             st.rerun()
         if st.button(t.get("cancel", "Cancel"), key="cancel_delete_expense"):
             del st.session_state["pending_delete"]
+
+# ==========================================
+# COMMUNITY REVIEWS & FEEDBACK ANALYTICS
+# ==========================================
+st.divider()
+st.subheader("💬 Community Reviews")
+
+from database import get_feedback_stats, get_all_feedback
+
+stats = get_feedback_stats()
+
+if stats["total_reviews"] > 0:
+    col_stat1, col_stat2, col_stat3 = st.columns(3)
+    with col_stat1:
+        st.metric("Total Reviews", f"{stats['total_reviews']}")
+    with col_stat2:
+        st.metric("⭐ Average Rating", f"{stats['avg_rating']:.1f} / 5")
+    with col_stat3:
+        st.metric(
+            "🤖 AI Usefulness Rating", f"{stats['avg_usefulness_rating']:.1f} / 5"
+        )
+
+    # Satisfaction Banner (Bonus)
+    st.info(
+        f"📊 **Community Satisfaction:** {stats['satisfaction_pct']:.0f}% of users rated KakeiboAI 4 stars or higher."
+    )
+
+    st.markdown("#### Recent User Reviews")
+    feedback_df = get_all_feedback(limit=10)
+    for _, row in feedback_df.iterrows():
+        stars = "⭐" * int(row["rating"])
+        comment = row["comments"]
+        username = row["username"]
+        try:
+            created_at = pd.to_datetime(row["created_at"]).strftime("%B %Y")
+        except Exception:
+            created_at = str(row["created_at"])
+
+        with st.container(border=True):
+            st.markdown(f"**{stars}**")
+            if comment:
+                st.write(f'"{comment}"')
+            st.caption(f"by {username} • {created_at}")
+else:
+    st.info("No feedback submitted yet. Share your experience at the top of the page!")
+
 
 # ==========================================
 # CHAT WITH YOUR FINANCES & QUICK ACTIONS
