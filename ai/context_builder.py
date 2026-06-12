@@ -2,17 +2,17 @@ import pandas as pd
 from database import get_monthly_goal, get_expenses, get_incomes
 
 
-def build_financial_context(selected_date: pd.Timestamp) -> str:
+def build_financial_context(selected_date: pd.Timestamp, user_id: int) -> str:
     """
     Query the database to generate a comprehensive, structured financial summary
     for the selected month to serve as context for the AI.
     """
     month_key = selected_date.strftime("%Y-%m")
-    goal = get_monthly_goal(month_key)
+    goal = get_monthly_goal(user_id, month_key)
 
     # Fetch transactions
-    expenses_df = get_expenses()
-    incomes_df = get_incomes()
+    expenses_df = get_expenses(user_id)
+    incomes_df = get_incomes(user_id)
 
     # Filter transactions to selected month
     def filter_to_month(df, date_col="date"):

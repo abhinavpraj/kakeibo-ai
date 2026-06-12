@@ -34,11 +34,29 @@ t = load_language("en")
 
 st.set_page_config(page_title="KakeiboAI", page_icon="₹", layout="wide")
 
+init_db()
+
+# Session state initialization for authentication
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+if "user_id" not in st.session_state:
+    st.session_state["user_id"] = None
+if "username" not in st.session_state:
+    st.session_state["username"] = None
+
 selected = st.sidebar.selectbox(t.get("language", "🌐 Language"), list(langs.keys()))
 t = load_language(langs[selected])
 
-# AI Settings Section in Sidebar
+# Auth check - gate the entire app
+if not st.session_state["authenticated"]:
+    from auth.auth_ui import render_auth_ui
+
+    render_auth_ui()
+    st.stop()
+
+# AI Settings Section in Sidebar (only shown if logged in)
 st.sidebar.divider()
+st.sidebar.write(f"👤 **Logged in as:** {st.session_state['username']}")
 st.sidebar.subheader(t.get("ai_settings", "🤖 AI Settings"))
 
 st.sidebar.markdown(
@@ -72,6 +90,14 @@ if st.session_state["ai_provider"] == "Gemini":
 else:
     if "api_key" not in st.session_state:
         st.session_state["api_key"] = ""
+
+st.sidebar.divider()
+if st.sidebar.button("🚪 Logout", use_container_width=True):
+    from auth.auth import logout_user
+
+    logout_user()
+    st.rerun()
+
 
 if "selected_date" not in st.session_state:
     st.session_state["selected_date"] = pd.Timestamp.today().normalize()
@@ -139,11 +165,12 @@ def parse_money_input(value):
     return float(cleaned_value)
 
 
-init_db()
+user_id = st.session_state["user_id"]
 selected_month_key = st.session_state["selected_date"].strftime("%Y-%m")
-goal = get_monthly_goal(selected_month_key)
-expenses = get_expenses()
-incomes = get_incomes()
+goal = get_monthly_goal(user_id, selected_month_key)
+expenses = get_expenses(user_id)
+incomes = get_incomes(user_id)
+
 month_expenses = selected_month_items(expenses, st.session_state["selected_date"])
 month_incomes = selected_month_items(incomes, st.session_state["selected_date"])
 
@@ -250,7 +277,10 @@ with plan_panel:
                     )
                 else:
                     save_monthly_goal(
-                        selected_month_key, monthly_income, target_savings
+                        st.session_state["user_id"],
+                        selected_month_key,
+                        monthly_income,
+                        target_savings,
                     )
                     st.success(
                         t.get("success_monthly_plan_saved", "Monthly plan saved.")
@@ -327,7 +357,13 @@ with income_panel:
                     )
                 )
             else:
-                add_income(income_amount, income_date, source_text, income_notes)
+                add_income(
+                    st.session_state["user_id"],
+                    income_amount,
+                    income_date,
+                    source_text,
+                    income_notes,
+                )
                 st.session_state["clear_income_inputs"] = True
                 st.success(t.get("success_income_added", "Income added."))
                 st.rerun()
@@ -411,7 +447,12 @@ with expense_panel:
                 st.error(t.get("error_short_description", "Add a short description."))
             else:
                 add_expense(
-                    expense_amount, expense_date, category, description, reflection
+                    st.session_state["user_id"],
+                    expense_amount,
+                    expense_date,
+                    category,
+                    description,
+                    reflection,
                 )
                 st.session_state["clear_expense_inputs"] = True
                 st.success(t.get("success_expense_added", "Expense added."))
@@ -600,7 +641,9 @@ if (
             t.get("yes_delete_income", "Yes, delete income"),
             key="confirm_delete_income",
         ):
-            delete_income(st.session_state["pending_delete"]["id"])
+            delete_income(
+                st.session_state["user_id"], st.session_state["pending_delete"]["id"]
+            )
             del st.session_state["pending_delete"]
             st.success(t.get("income_entry_deleted", "Income entry deleted."))
             st.rerun()
@@ -648,7 +691,9 @@ if (
             t.get("yes_delete_expense", "Yes, delete expense"),
             key="confirm_delete_expense",
         ):
-            delete_expense(st.session_state["pending_delete"]["id"])
+            delete_expense(
+                st.session_state["user_id"], st.session_state["pending_delete"]["id"]
+            )
             del st.session_state["pending_delete"]
             st.success(t.get("expense_entry_deleted", "Expense entry deleted."))
             st.rerun()
@@ -717,7 +762,9 @@ if quick_prompt:
 
     from ai.context_builder import build_financial_context
 
-    context = build_financial_context(st.session_state["selected_date"])
+    context = build_financial_context(
+        st.session_state["selected_date"], st.session_state["user_id"]
+    )
 
     system_prompt = (
         "You are KakeiboAI, a personal finance coach based on the Japanese Kakeibo methodology (mindful spending, reflection, and saving). "
@@ -753,7 +800,9 @@ if user_input:
 
     from ai.context_builder import build_financial_context
 
-    context = build_financial_context(st.session_state["selected_date"])
+    context = build_financial_context(
+        st.session_state["selected_date"], st.session_state["user_id"]
+    )
 
     system_prompt = (
         "You are KakeiboAI, a personal finance coach based on the Japanese Kakeibo methodology (mindful spending, reflection, and saving). "

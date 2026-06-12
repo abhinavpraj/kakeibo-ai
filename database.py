@@ -2,6 +2,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import bcrypt
 import pandas as pd
 
 IST = timezone(timedelta(hours=5, minutes=30))
@@ -33,19 +34,185 @@ def get_connection():
     return sqlite3.connect(DB_PATH)
 
 
-def init_db():
+def migrate_db():
+    """
+    Perform database migrations to transition from single-user to multi-user isolated data.
+    Ensures that a default 'legacy' user is created and all pre-existing records are
+    associated with this user so that no historical data is lost.
+    """
     with get_connection() as conn:
+        # Create users table if not exists
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        # Check if legacy user exists
+        legacy_user = conn.execute(
+            "SELECT id FROM users WHERE username = 'legacy'"
+        ).fetchone()
+        if not legacy_user:
+            legacy_hash = bcrypt.hashpw(b"legacy", bcrypt.gensalt()).decode("utf-8")
+            conn.execute(
+                "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+                ("legacy", legacy_hash),
+            )
+            legacy_user_id = 1
+        else:
+            legacy_user_id = legacy_user[0]
+
+    # Perform table migrations for tables missing user_id
+    tables_to_migrate = ["expenses", "incomes", "goals", "monthly_goals"]
+    for table in tables_to_migrate:
+        with get_connection() as conn:
+            # Check if table exists
+            table_exists = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                (table,),
+            ).fetchone()
+            if not table_exists:
+                continue
+
+            # Check if user_id column exists
+            columns = [row[1] for row in conn.execute(f"PRAGMA table_info({table})")]
+            if "user_id" not in columns:
+                if table == "expenses":
+                    conn.execute("ALTER TABLE expenses RENAME TO old_expenses")
+                    conn.execute(
+                        """
+                        CREATE TABLE expenses (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id INTEGER NOT NULL,
+                            amount REAL NOT NULL CHECK(amount > 0),
+                            date TEXT NOT NULL,
+                            time TEXT NOT NULL,
+                            category TEXT NOT NULL,
+                            description TEXT NOT NULL,
+                            reflection TEXT DEFAULT '',
+                            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                        )
+                        """
+                    )
+                    conn.execute(
+                        f"""
+                        INSERT INTO expenses (id, user_id, amount, date, time, category, description, reflection, created_at)
+                        SELECT id, {legacy_user_id}, amount, date, time, category, description, reflection, created_at
+                        FROM old_expenses
+                        """
+                    )
+                    conn.execute("DROP TABLE old_expenses")
+
+                elif table == "incomes":
+                    conn.execute("ALTER TABLE incomes RENAME TO old_incomes")
+                    conn.execute(
+                        """
+                        CREATE TABLE incomes (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id INTEGER NOT NULL,
+                            amount REAL NOT NULL CHECK(amount > 0),
+                            date TEXT NOT NULL,
+                            time TEXT NOT NULL,
+                            source TEXT NOT NULL,
+                            notes TEXT DEFAULT '',
+                            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                        )
+                        """
+                    )
+                    conn.execute(
+                        f"""
+                        INSERT INTO incomes (id, user_id, amount, date, time, source, notes, created_at)
+                        SELECT id, {legacy_user_id}, amount, date, time, source, notes, created_at
+                        FROM old_incomes
+                        """
+                    )
+                    conn.execute("DROP TABLE old_incomes")
+
+                elif table == "goals":
+                    conn.execute("ALTER TABLE goals RENAME TO old_goals")
+                    conn.execute(
+                        """
+                        CREATE TABLE goals (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id INTEGER NOT NULL UNIQUE,
+                            monthly_income REAL NOT NULL DEFAULT 0,
+                            target_savings REAL NOT NULL DEFAULT 0,
+                            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                        )
+                        """
+                    )
+                    conn.execute(
+                        f"""
+                        INSERT INTO goals (user_id, monthly_income, target_savings, updated_at)
+                        SELECT {legacy_user_id}, monthly_income, target_savings, updated_at
+                        FROM old_goals
+                        """
+                    )
+                    conn.execute("DROP TABLE old_goals")
+
+                elif table == "monthly_goals":
+                    conn.execute(
+                        "ALTER TABLE monthly_goals RENAME TO old_monthly_goals"
+                    )
+                    conn.execute(
+                        """
+                        CREATE TABLE monthly_goals (
+                            user_id INTEGER NOT NULL,
+                            month_key TEXT NOT NULL,
+                            monthly_income REAL NOT NULL DEFAULT 0,
+                            target_savings REAL NOT NULL DEFAULT 0,
+                            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                            PRIMARY KEY (user_id, month_key),
+                            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                        )
+                        """
+                    )
+                    conn.execute(
+                        f"""
+                        INSERT INTO monthly_goals (user_id, month_key, monthly_income, target_savings, updated_at)
+                        SELECT {legacy_user_id}, month_key, monthly_income, target_savings, updated_at
+                        FROM old_monthly_goals
+                        """
+                    )
+                    conn.execute("DROP TABLE old_monthly_goals")
+
+
+def init_db():
+    # Run migrations first to handle existing databases
+    migrate_db()
+
+    with get_connection() as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS expenses (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
                 amount REAL NOT NULL CHECK(amount > 0),
                 date TEXT NOT NULL,
                 time TEXT NOT NULL,
                 category TEXT NOT NULL,
                 description TEXT NOT NULL,
                 reflection TEXT DEFAULT '',
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )
             """
         )
@@ -53,15 +220,18 @@ def init_db():
             """
             CREATE TABLE IF NOT EXISTS incomes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
                 amount REAL NOT NULL CHECK(amount > 0),
                 date TEXT NOT NULL,
                 time TEXT NOT NULL,
                 source TEXT NOT NULL,
                 notes TEXT DEFAULT '',
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )
             """
         )
+
         for table, column_def in [
             ("expenses", "time TEXT NOT NULL DEFAULT ''"),
             ("incomes", "time TEXT NOT NULL DEFAULT ''"),
@@ -71,81 +241,92 @@ def init_db():
             ]
             if column_def.split()[0] not in existing_columns:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
+
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS goals (
-                id INTEGER PRIMARY KEY CHECK(id = 1),
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL UNIQUE,
                 monthly_income REAL NOT NULL DEFAULT 0,
                 target_savings REAL NOT NULL DEFAULT 0,
-                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )
-            """
-        )
-        conn.execute(
-            """
-            INSERT OR IGNORE INTO goals (id, monthly_income, target_savings)
-            VALUES (1, 0, 0)
             """
         )
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS monthly_goals (
-                month_key TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                month_key TEXT NOT NULL,
                 monthly_income REAL NOT NULL DEFAULT 0,
                 target_savings REAL NOT NULL DEFAULT 0,
-                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, month_key),
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )
             """
         )
 
 
-def save_goal(monthly_income, target_savings):
+def save_goal(user_id, monthly_income, target_savings):
     with get_connection() as conn:
         conn.execute(
             """
-            UPDATE goals
-            SET monthly_income = ?, target_savings = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = 1
-            """,
-            (float(monthly_income), float(target_savings)),
-        )
-
-
-def get_goal():
-    with get_connection() as conn:
-        row = conn.execute(
-            "SELECT monthly_income, target_savings FROM goals WHERE id = 1"
-        ).fetchone()
-    return {"monthly_income": row[0], "target_savings": row[1]}
-
-
-def save_monthly_goal(month_key, monthly_income, target_savings):
-    with get_connection() as conn:
-        conn.execute(
-            """
-            INSERT INTO monthly_goals (month_key, monthly_income, target_savings, updated_at)
+            INSERT INTO goals (user_id, monthly_income, target_savings, updated_at)
             VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(month_key) DO UPDATE SET
+            ON CONFLICT(user_id) DO UPDATE SET
                 monthly_income = excluded.monthly_income,
                 target_savings = excluded.target_savings,
                 updated_at = CURRENT_TIMESTAMP
             """,
-            (month_key.strip(), float(monthly_income), float(target_savings)),
+            (int(user_id), float(monthly_income), float(target_savings)),
         )
 
 
-def get_monthly_goal(month_key):
+def get_goal(user_id):
     with get_connection() as conn:
         row = conn.execute(
-            "SELECT monthly_income, target_savings FROM monthly_goals WHERE month_key = ?",
-            (month_key.strip(),),
+            "SELECT monthly_income, target_savings FROM goals WHERE user_id = ?",
+            (int(user_id),),
         ).fetchone()
     if row is None:
         return {"monthly_income": 0.0, "target_savings": 0.0}
     return {"monthly_income": row[0], "target_savings": row[1]}
 
 
-def add_expense(amount, date, category, description, reflection=""):
+def save_monthly_goal(user_id, month_key, monthly_income, target_savings):
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO monthly_goals (user_id, month_key, monthly_income, target_savings, updated_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(user_id, month_key) DO UPDATE SET
+                monthly_income = excluded.monthly_income,
+                target_savings = excluded.target_savings,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (
+                int(user_id),
+                month_key.strip(),
+                float(monthly_income),
+                float(target_savings),
+            ),
+        )
+
+
+def get_monthly_goal(user_id, month_key):
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT monthly_income, target_savings FROM monthly_goals WHERE user_id = ? AND month_key = ?",
+            (int(user_id), month_key.strip()),
+        ).fetchone()
+    if row is None:
+        return {"monthly_income": 0.0, "target_savings": 0.0}
+    return {"monthly_income": row[0], "target_savings": row[1]}
+
+
+def add_expense(user_id, amount, date, category, description, reflection=""):
     if category not in CATEGORIES:
         raise ValueError("Expense category must be one of the Kakeibo categories.")
 
@@ -153,10 +334,11 @@ def add_expense(amount, date, category, description, reflection=""):
     with get_connection() as conn:
         conn.execute(
             """
-            INSERT INTO expenses (amount, date, time, category, description, reflection)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO expenses (user_id, amount, date, time, category, description, reflection)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
+                int(user_id),
                 float(amount),
                 date.isoformat(),
                 entry_time,
@@ -167,15 +349,17 @@ def add_expense(amount, date, category, description, reflection=""):
         )
 
 
-def get_expenses():
+def get_expenses(user_id):
     with get_connection() as conn:
         expenses = pd.read_sql_query(
             """
             SELECT id, date, time, description, category, amount, reflection
             FROM expenses
+            WHERE user_id = ?
             ORDER BY date DESC, id DESC
             """,
             conn,
+            params=(int(user_id),),
         )
 
     if not expenses.empty:
@@ -184,7 +368,7 @@ def get_expenses():
     return expenses
 
 
-def add_income(amount, date, source, notes=""):
+def add_income(user_id, amount, date, source, notes=""):
     if float(amount) <= 0:
         raise ValueError("Income amount must be greater than zero.")
 
@@ -192,10 +376,11 @@ def add_income(amount, date, source, notes=""):
     with get_connection() as conn:
         conn.execute(
             """
-            INSERT INTO incomes (amount, date, time, source, notes)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO incomes (user_id, amount, date, time, source, notes)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
             (
+                int(user_id),
                 float(amount),
                 date.isoformat(),
                 entry_time,
@@ -205,15 +390,17 @@ def add_income(amount, date, source, notes=""):
         )
 
 
-def get_incomes():
+def get_incomes(user_id):
     with get_connection() as conn:
         incomes = pd.read_sql_query(
             """
             SELECT id, date, time, source, amount, notes
             FROM incomes
+            WHERE user_id = ?
             ORDER BY date DESC, id DESC
             """,
             conn,
+            params=(int(user_id),),
         )
 
     if not incomes.empty:
@@ -221,11 +408,17 @@ def get_incomes():
     return incomes
 
 
-def delete_income(income_id):
+def delete_income(user_id, income_id):
     with get_connection() as conn:
-        conn.execute("DELETE FROM incomes WHERE id = ?", (int(income_id),))
+        conn.execute(
+            "DELETE FROM incomes WHERE id = ? AND user_id = ?",
+            (int(income_id), int(user_id)),
+        )
 
 
-def delete_expense(expense_id):
+def delete_expense(user_id, expense_id):
     with get_connection() as conn:
-        conn.execute("DELETE FROM expenses WHERE id = ?", (int(expense_id),))
+        conn.execute(
+            "DELETE FROM expenses WHERE id = ? AND user_id = ?",
+            (int(expense_id), int(user_id)),
+        )
