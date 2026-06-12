@@ -117,6 +117,12 @@ if st.session_state.get("clear_expense_inputs"):
     st.session_state["exp_category"] = None
     del st.session_state["clear_expense_inputs"]
 
+if st.session_state.get("clear_feedback_inputs"):
+    st.session_state["feedback_stars"] = None
+    st.session_state["feedback_usefulness"] = 3
+    st.session_state["feedback_comments"] = ""
+    del st.session_state["clear_feedback_inputs"]
+
 for key, default in [
     ("exp_amount", ""),
     ("exp_desc", ""),
@@ -126,9 +132,13 @@ for key, default in [
     ("inc_custom_source", ""),
     ("inc_notes", ""),
     ("inc_source", "Salary"),
+    ("feedback_stars", None),
+    ("feedback_usefulness", 3),
+    ("feedback_comments", ""),
 ]:
     if key not in st.session_state:
         st.session_state[key] = default
+
 
 if "chat_messages" not in st.session_state:
     st.session_state["chat_messages"] = []
@@ -263,10 +273,8 @@ if st.session_state.get("authenticated"):
 
                 save_feedback(user_id, rating, usefulness, comments)
 
-                # Reset inputs in session state
-                st.session_state["feedback_stars"] = None
-                st.session_state["feedback_usefulness"] = 3
-                st.session_state["feedback_comments"] = ""
+                # Reset inputs in session state (deferred to prevent StreamlitAPIException)
+                st.session_state["clear_feedback_inputs"] = True
 
                 st.success("Thank you for your feedback!")
                 st.rerun()
