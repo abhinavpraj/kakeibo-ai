@@ -1,0 +1,9 @@
+[project]
+name = "kakeibo-ai"
+version = "0.1.0"
+description = "A personal finance management tool following the Kakeibo methodology with AI insights."
+readme = "README.md"
+requires-python = ">=3.9"
+
+[tool.bandit]
+exclude_dirs = [".venv", "tests"]

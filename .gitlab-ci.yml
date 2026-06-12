@@ -1,3 +1,5 @@
+# Compliance checking: gitleaks, secret_detection, pip-audit, bandit
+
 stages:
   - test
 
@@ -10,3 +12,22 @@ lint:
     - python -m py_compile app.py
     - python -m py_compile database.py
     - python -m py_compile insights.py
+
+dependency_audit:
+  stage: test
+  image: python:3.11
+  before_script:
+    - pip install pip-audit
+  script:
+    - pip-audit -r requirements.txt
+
+static_analysis:
+  stage: test
+  image: python:3.11
+  before_script:
+    - pip install bandit
+  script:
+    - bandit -r app.py database.py insights.py i18n.py
+
+include:
+  - template: Security/Secret-Detection.gitlab-ci.yml
