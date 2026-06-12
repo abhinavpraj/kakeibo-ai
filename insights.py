@@ -54,7 +54,9 @@ def generate_insights(expenses, monthly_income, target_savings):
             f"Your highest spending category is {top_category} at {currency(category_totals[top_category])}."
         )
 
-    missing_categories = [category for category in CATEGORIES if category not in category_totals]
+    missing_categories = [
+        category for category in CATEGORIES if category not in category_totals
+    ]
     if missing_categories:
         insights.append(
             f"No spending recorded yet for {', '.join(missing_categories)}. That can be good, or it may mean some expenses are not logged."

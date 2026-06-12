@@ -1,0 +1,12 @@
+stages:
+  - test
+
+lint:
+  stage: test
+  image: python:3.11
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - python -m py_compile app.py
+    - python -m py_compile database.py
+    - python -m py_compile insights.py

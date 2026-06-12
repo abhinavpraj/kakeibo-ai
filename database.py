@@ -66,7 +66,9 @@ def init_db():
             ("expenses", "time TEXT NOT NULL DEFAULT ''"),
             ("incomes", "time TEXT NOT NULL DEFAULT ''"),
         ]:
-            existing_columns = [row[1] for row in conn.execute(f"PRAGMA table_info({table})")]
+            existing_columns = [
+                row[1] for row in conn.execute(f"PRAGMA table_info({table})")
+            ]
             if column_def.split()[0] not in existing_columns:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
         conn.execute(
@@ -136,7 +138,7 @@ def get_monthly_goal(month_key):
     with get_connection() as conn:
         row = conn.execute(
             "SELECT monthly_income, target_savings FROM monthly_goals WHERE month_key = ?",
-            (month_key.strip(),)
+            (month_key.strip(),),
         ).fetchone()
     if row is None:
         return {"monthly_income": 0.0, "target_savings": 0.0}
@@ -193,7 +195,13 @@ def add_income(amount, date, source, notes=""):
             INSERT INTO incomes (amount, date, time, source, notes)
             VALUES (?, ?, ?, ?, ?)
             """,
-            (float(amount), date.isoformat(), entry_time, source.strip(), notes.strip()),
+            (
+                float(amount),
+                date.isoformat(),
+                entry_time,
+                source.strip(),
+                notes.strip(),
+            ),
         )
 
 
