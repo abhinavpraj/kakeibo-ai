@@ -516,6 +516,9 @@ def get_supabase_client():
             return None
         return create_client(url, key)
     except Exception:
+        import traceback
+
+        traceback.print_exc()
         return None
 
 
@@ -534,7 +537,13 @@ def save_feedback_supabase(user_id, username, rating, usefulness_rating, comment
         "ai_usefulness_rating": int(usefulness_rating),
         "comments": comments.strip(),
     }
-    client.table("feedback").insert(data).execute()
+    try:
+        client.table("feedback").insert(data).execute()
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+        raise e
 
 
 def get_feedback_supabase():
@@ -560,6 +569,9 @@ def get_feedback_supabase():
             df["created_at"] = pd.to_datetime(df["created_at"])
         return df
     except Exception:
+        import traceback
+
+        traceback.print_exc()
         return pd.DataFrame()
 
 

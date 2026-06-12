@@ -284,6 +284,9 @@ if st.session_state.get("authenticated"):
                     st.success("Thank you for your feedback!")
                     st.rerun()
                 except Exception:
+                    import traceback
+
+                    traceback.print_exc()
                     st.error("Feedback service temporarily unavailable.")
 
 
@@ -948,6 +951,9 @@ else:
                 "No feedback has been submitted yet. Share your experience at the top of the page!"
             )
     except Exception:
+        import traceback
+
+        traceback.print_exc()
         st.error("Feedback service temporarily unavailable.")
 
 
