@@ -269,15 +269,22 @@ if st.session_state.get("authenticated"):
                 usefulness = st.session_state.get("feedback_usefulness", 3)
                 comments = st.session_state.get("feedback_comments", "")
 
-                from database import save_feedback
+                from database import save_feedback_supabase
 
-                save_feedback(user_id, rating, usefulness, comments)
+                username = st.session_state.get("username", "Anonymous User")
 
-                # Reset inputs in session state (deferred to prevent StreamlitAPIException)
-                st.session_state["clear_feedback_inputs"] = True
+                try:
+                    save_feedback_supabase(
+                        user_id, username, rating, usefulness, comments
+                    )
 
-                st.success("Thank you for your feedback!")
-                st.rerun()
+                    # Reset inputs in session state (deferred to prevent StreamlitAPIException)
+                    st.session_state["clear_feedback_inputs"] = True
+
+                    st.success("Thank you for your feedback!")
+                    st.rerun()
+                except Exception:
+                    st.error("Feedback service temporarily unavailable.")
 
 
 # Calculate default form date based on the selected month
@@ -755,44 +762,193 @@ if (
 st.divider()
 st.subheader("💬 Community Reviews")
 
-from database import get_feedback_stats, get_all_feedback
+from database import (
+    get_supabase_client,
+    get_feedback_supabase,
+    get_feedback_stats_supabase,
+)
 
-stats = get_feedback_stats()
+# Safe check for Supabase client
+supabase_available = True
+client = get_supabase_client()
+if not client:
+    supabase_available = False
 
-if stats["total_reviews"] > 0:
-    col_stat1, col_stat2, col_stat3 = st.columns(3)
-    with col_stat1:
-        st.metric("Total Reviews", f"{stats['total_reviews']}")
-    with col_stat2:
-        st.metric("⭐ Average Rating", f"{stats['avg_rating']:.1f} / 5")
-    with col_stat3:
-        st.metric(
-            "🤖 AI Usefulness Rating", f"{stats['avg_usefulness_rating']:.1f} / 5"
-        )
-
-    # Satisfaction Banner (Bonus)
-    st.info(
-        f"📊 **Community Satisfaction:** {stats['satisfaction_pct']:.0f}% of users rated KakeiboAI 4 stars or higher."
-    )
-
-    st.markdown("#### Recent User Reviews")
-    feedback_df = get_all_feedback(limit=10)
-    for _, row in feedback_df.iterrows():
-        stars = "⭐" * int(row["rating"])
-        comment = row["comments"]
-        username = row["username"]
-        try:
-            created_at = pd.to_datetime(row["created_at"]).strftime("%B %Y")
-        except Exception:
-            created_at = str(row["created_at"])
-
-        with st.container(border=True):
-            st.markdown(f"**{stars}**")
-            if comment:
-                st.write(f'"{comment}"')
-            st.caption(f"by {username} • {created_at}")
+if not supabase_available:
+    st.error("Feedback service temporarily unavailable.")
 else:
-    st.info("No feedback submitted yet. Share your experience at the top of the page!")
+    try:
+        feedback_df = get_feedback_supabase()
+
+        if not feedback_df.empty:
+            # 📊 User Feedback Analytics
+            st.markdown("### 📊 User Feedback Analytics")
+            stats = get_feedback_stats_supabase(feedback_df)
+
+            col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
+            with col_stat1:
+                st.metric("Total Reviews", f"{stats['total_reviews']}")
+            with col_stat2:
+                st.metric("⭐ Average Rating", f"{stats['avg_rating']:.1f} / 5")
+            with col_stat3:
+                st.metric(
+                    "🤖 Average AI Rating",
+                    f"{stats['avg_usefulness_rating']:.1f} / 5",
+                )
+            with col_stat4:
+                st.metric("📈 Satisfaction Rate", f"{stats['satisfaction_pct']:.0f}%")
+
+            # Satisfaction Banner (Bonus)
+            st.info(
+                f"📊 **Community Satisfaction:** {stats['satisfaction_pct']:.0f}% of users rated KakeiboAI 4 stars or higher."
+            )
+
+            # Recent Reviews (Latest 20 reviews)
+            st.markdown("### Recent Reviews")
+            recent_20 = feedback_df.head(20)
+            for _, row in recent_20.iterrows():
+                stars = "⭐" * int(row["rating"])
+                comment = row["comments"]
+                username = row["username"]
+                try:
+                    created_at = pd.to_datetime(row["created_at"]).strftime("%B %Y")
+                except Exception:
+                    created_at = str(row["created_at"])
+
+                with st.container(border=True):
+                    st.markdown(f"**{stars}**")
+                    if comment:
+                        st.write(f'"{comment}"')
+                    st.caption(f"by {username} • {created_at}")
+
+            # ==========================================
+            # 💬 USER FEEDBACK DASHBOARD (ADMIN & EVALUATION)
+            # ==========================================
+            st.divider()
+            st.subheader("💬 User Feedback Dashboard")
+
+            # Feedback Statistics
+            st.markdown("### 📊 Feedback Statistics")
+            col_d1, col_d2, col_d3, col_d4, col_d5 = st.columns(5)
+            with col_d1:
+                st.metric("Total Reviews", f"{stats['total_reviews']}")
+            with col_d2:
+                st.metric("⭐ Average Rating", f"{stats['avg_rating']:.1f} / 5")
+            with col_d3:
+                st.metric(
+                    "🤖 Average AI Rating",
+                    f"{stats['avg_usefulness_rating']:.1f} / 5",
+                )
+            with col_d4:
+                st.metric("🏆 5-Star Reviews", f"{stats['five_star_count']}")
+            with col_d5:
+                st.metric("📈 Satisfaction", f"{stats['satisfaction_pct']:.0f}%")
+
+            # Search Feedback
+            st.markdown("### 🔍 Search Feedback")
+            col_f1, col_f2, col_f3 = st.columns(3)
+            with col_f1:
+                search_user = st.text_input(
+                    "Filter by Username", key="search_user_val"
+                ).strip()
+            with col_f2:
+                search_rating = st.selectbox(
+                    "Filter by Rating",
+                    options=[
+                        "All",
+                        "5 Stars",
+                        "4 Stars",
+                        "3 Stars",
+                        "2 Stars",
+                        "1 Star",
+                    ],
+                    index=0,
+                    key="search_rating_val",
+                )
+            with col_f3:
+                search_date = st.text_input(
+                    "Filter by Date (YYYY-MM-DD)",
+                    placeholder="e.g. 2026-06-12",
+                    key="search_date_val",
+                ).strip()
+
+            # Filter dataframe
+            filtered_df = feedback_df.copy()
+            if search_user:
+                filtered_df = filtered_df[
+                    filtered_df["username"].str.contains(
+                        search_user, case=False, na=False
+                    )
+                ]
+
+            if search_rating != "All":
+                target_stars = int(search_rating.split()[0])
+                filtered_df = filtered_df[filtered_df["rating"] == target_stars]
+
+            if search_date:
+                try:
+                    filtered_df = filtered_df[
+                        filtered_df["created_at"].dt.strftime("%Y-%m-%d") == search_date
+                    ]
+                except Exception:
+                    filtered_df = filtered_df[
+                        filtered_df["created_at"]
+                        .astype(str)
+                        .str.contains(search_date, na=False)
+                    ]
+
+            # Format dataframe for display
+            if not filtered_df.empty:
+                display_df = filtered_df.copy()
+                display_df["stars_rating"] = display_df["rating"].apply(
+                    lambda r: "⭐" * int(r)
+                )
+                display_df["formatted_date"] = display_df["created_at"].apply(
+                    lambda d: (
+                        d.strftime("%Y-%m-%d") if hasattr(d, "strftime") else str(d)
+                    )
+                )
+
+                table_df = display_df[
+                    [
+                        "username",
+                        "formatted_date",
+                        "stars_rating",
+                        "ai_usefulness_rating",
+                        "comments",
+                    ]
+                ].rename(
+                    columns={
+                        "username": "User",
+                        "formatted_date": "Date",
+                        "stars_rating": "Rating",
+                        "ai_usefulness_rating": "AI Rating",
+                        "comments": "Comment",
+                    }
+                )
+
+                st.dataframe(table_df, use_container_width=True)
+
+                # Export Feedback (CSV)
+                csv_data = filtered_df.to_csv(index=False)
+                st.download_button(
+                    label="📥 Export Feedback (CSV)",
+                    data=csv_data,
+                    file_name="kakeibo_feedback_export.csv",
+                    mime="text/csv",
+                    key="btn_export_feedback",
+                )
+            else:
+                st.info(
+                    "No matching feedback entries found for the active search criteria."
+                )
+
+        else:
+            st.info(
+                "No feedback has been submitted yet. Share your experience at the top of the page!"
+            )
+    except Exception:
+        st.error("Feedback service temporarily unavailable.")
 
 
 # ==========================================

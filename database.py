@@ -496,3 +496,100 @@ def get_feedback_stats():
         "avg_usefulness_rating": avg_usefulness,
         "satisfaction_pct": satisfaction_pct,
     }
+
+
+def get_supabase_client():
+    """
+    Initialize and return the Supabase client safely from Streamlit secrets.
+    Returns None if secrets are missing or connection fails.
+    """
+    import streamlit as st
+
+    if "SUPABASE_URL" not in st.secrets or "SUPABASE_ANON_KEY" not in st.secrets:
+        return None
+    try:
+        from supabase import create_client
+
+        url = st.secrets["SUPABASE_URL"]
+        key = st.secrets["SUPABASE_ANON_KEY"]
+        if not url or not key:
+            return None
+        return create_client(url, key)
+    except Exception:
+        return None
+
+
+def save_feedback_supabase(user_id, username, rating, usefulness_rating, comments):
+    """
+    Save user feedback to Supabase table.
+    """
+    client = get_supabase_client()
+    if not client:
+        raise ConnectionError("Feedback service temporarily unavailable.")
+
+    data = {
+        "user_id": int(user_id),
+        "username": username,
+        "rating": int(rating),
+        "ai_usefulness_rating": int(usefulness_rating),
+        "comments": comments.strip(),
+    }
+    client.table("feedback").insert(data).execute()
+
+
+def get_feedback_supabase():
+    """
+    Fetch all feedback entries from Supabase, sorted newest first.
+    """
+    client = get_supabase_client()
+    if not client:
+        return pd.DataFrame()
+
+    try:
+        response = (
+            client.table("feedback")
+            .select("*")
+            .order("created_at", desc=True)
+            .execute()
+        )
+        data = response.data
+        if not data:
+            return pd.DataFrame()
+        df = pd.DataFrame(data)
+        if "created_at" in df.columns:
+            df["created_at"] = pd.to_datetime(df["created_at"])
+        return df
+    except Exception:
+        return pd.DataFrame()
+
+
+def get_feedback_stats_supabase(df=None):
+    """
+    Compute feedback statistics from Supabase feedback data.
+    """
+    if df is None or df.empty:
+        df = get_feedback_supabase()
+
+    if df.empty:
+        return {
+            "total_reviews": 0,
+            "avg_rating": 0.0,
+            "avg_usefulness_rating": 0.0,
+            "five_star_count": 0,
+            "satisfaction_pct": 0.0,
+        }
+
+    total = len(df)
+    avg_rating = float(df["rating"].mean())
+    avg_usefulness = float(df["ai_usefulness_rating"].mean())
+    five_star_count = int((df["rating"] == 5).sum())
+    high_ratings = int((df["rating"] >= 4).sum())
+    satisfaction_pct = (high_ratings / total) * 100.0
+
+    return {
+        "total_reviews": total,
+        "avg_rating": avg_rating,
+        "avg_usefulness_rating": avg_usefulness,
+        "five_star_count": five_star_count,
+        "satisfaction_pct": satisfaction_pct,
+    }
