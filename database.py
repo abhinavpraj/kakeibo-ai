@@ -101,11 +101,12 @@ def migrate_db():
                         """
                     )
                     conn.execute(
-                        f"""
-                        INSERT INTO expenses (id, user_id, amount, date, time, category, description, reflection, created_at)
-                        SELECT id, {legacy_user_id}, amount, date, time, category, description, reflection, created_at
-                        FROM old_expenses
                         """
+                        INSERT INTO expenses (id, user_id, amount, date, time, category, description, reflection, created_at)
+                        SELECT id, ?, amount, date, time, category, description, reflection, created_at
+                        FROM old_expenses
+                        """,
+                        (legacy_user_id,),
                     )
                     conn.execute("DROP TABLE old_expenses")
 
@@ -127,11 +128,12 @@ def migrate_db():
                         """
                     )
                     conn.execute(
-                        f"""
-                        INSERT INTO incomes (id, user_id, amount, date, time, source, notes, created_at)
-                        SELECT id, {legacy_user_id}, amount, date, time, source, notes, created_at
-                        FROM old_incomes
                         """
+                        INSERT INTO incomes (id, user_id, amount, date, time, source, notes, created_at)
+                        SELECT id, ?, amount, date, time, source, notes, created_at
+                        FROM old_incomes
+                        """,
+                        (legacy_user_id,),
                     )
                     conn.execute("DROP TABLE old_incomes")
 
@@ -150,11 +152,12 @@ def migrate_db():
                         """
                     )
                     conn.execute(
-                        f"""
-                        INSERT INTO goals (user_id, monthly_income, target_savings, updated_at)
-                        SELECT {legacy_user_id}, monthly_income, target_savings, updated_at
-                        FROM old_goals
                         """
+                        INSERT INTO goals (user_id, monthly_income, target_savings, updated_at)
+                        SELECT ?, monthly_income, target_savings, updated_at
+                        FROM old_goals
+                        """,
+                        (legacy_user_id,),
                     )
                     conn.execute("DROP TABLE old_goals")
 
@@ -176,11 +179,12 @@ def migrate_db():
                         """
                     )
                     conn.execute(
-                        f"""
-                        INSERT INTO monthly_goals (user_id, month_key, monthly_income, target_savings, updated_at)
-                        SELECT {legacy_user_id}, month_key, monthly_income, target_savings, updated_at
-                        FROM old_monthly_goals
                         """
+                        INSERT INTO monthly_goals (user_id, month_key, monthly_income, target_savings, updated_at)
+                        SELECT ?, month_key, monthly_income, target_savings, updated_at
+                        FROM old_monthly_goals
+                        """,
+                        (legacy_user_id,),
                     )
                     conn.execute("DROP TABLE old_monthly_goals")
 
@@ -451,14 +455,15 @@ def save_feedback(user_id, rating, usefulness_rating, comments):
 def get_all_feedback(limit=10):
     with get_connection() as conn:
         feedback_df = pd.read_sql_query(
-            f"""
+            """
             SELECT f.rating, f.usefulness_rating, f.comments, f.created_at, u.username
             FROM feedback f
             JOIN users u ON f.user_id = u.id
             ORDER BY f.created_at DESC
-            LIMIT {int(limit)}
+            LIMIT ?
             """,
             conn,
+            params=(int(limit),),
         )
     return feedback_df
 

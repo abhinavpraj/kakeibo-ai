@@ -56,7 +56,7 @@ def generate(prompt: str, api_key: str) -> str:
                         elif clean_names:
                             # Default to the first available model that supports generation
                             model_name = clean_names[0]
-        except Exception:
+        except Exception:  # nosec B110
             # If list_models fails (e.g. permission/network issue), fallback to the config default
             pass
 

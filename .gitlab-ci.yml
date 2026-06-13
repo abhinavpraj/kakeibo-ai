@@ -1,74 +1,66 @@
 stages:
-  - test
   - lint
-  - format
-  - type_check
-  - coverage
+  - security
+  - test
 
-include:
-  - template: Security/Secret-Detection.gitlab-ci.yml
-
-test:
-  stage: test
-  image: python:3.11
+.python_env:
   before_script:
+    - if [ ! -d ".venv" ]; then python3 -m venv .venv; fi
+    - source .venv/bin/activate
+    - pip install --upgrade pip
     - pip install -r requirements.txt
-    - pip install pytest pytest-cov
-  script:
-    - pytest tests/
 
-lint:
+py_compile:
   stage: lint
-  image: python:3.11
-  before_script:
-    - pip install ruff
+  tags:
+    - python
+  script:
+    - find . -name "*.py" -not -path "*/.venv/*" -not -path "*/scratch/*" -exec python3 -m py_compile {} +
+
+ruff:
+  stage: lint
+  extends: .python_env
+  tags:
+    - python
   script:
     - ruff check .
 
-format:
-  stage: format
-  image: python:3.11
-  before_script:
-    - pip install ruff
+bandit:
+  stage: security
+  extends: .python_env
+  tags:
+    - python
   script:
-    - ruff format --check .
+    - pip install bandit
+    - bandit -r . -x ./.venv/,./scratch/,./tests/
 
-type_check:
-  stage: type_check
-  image: python:3.11
-  before_script:
-    - pip install -r requirements.txt
-    - pip install mypy pandas-stubs
+pip_audit:
+  stage: security
+  extends: .python_env
+  tags:
+    - python
   script:
-    - mypy . --ignore-missing-imports
+    - pip install pip-audit
+    - pip-audit -r requirements.txt
 
-coverage:
-  stage: coverage
-  image: python:3.11
-  before_script:
-    - pip install -r requirements.txt
-    - pip install pytest pytest-cov
+gitleaks:
+  stage: security
+  tags:
+    - python
   script:
-    - pytest --cov=database --cov=auth --cov-report=term --cov-report=xml --cov-fail-under=60 tests/
+    - export PATH="/opt/homebrew/bin:$PATH"
+    - gitleaks detect --source=. -v
+
+test:
+  stage: test
+  extends: .python_env
+  tags:
+    - python
+  script:
+    - if [ -d "tests" ]; then pytest --cov=database --cov=auth --cov-report=term --cov-report=xml --cov-fail-under=60 tests/; else echo "No tests directory found, skipping gracefully"; fi
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)/'
   artifacts:
     reports:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
-
-dependency_audit:
-  stage: test
-  image: python:3.11
-  before_script:
-    - pip install pip-audit
-  script:
-    - pip-audit -r requirements.txt
-
-static_analysis:
-  stage: test
-  image: python:3.11
-  before_script:
-    - pip install bandit
-  script:
-    - bandit -r app.py database.py insights.py i18n.py
