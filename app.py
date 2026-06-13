@@ -88,7 +88,7 @@ if st.session_state["ai_provider"] == "Gemini":
         type="password",
     )
     if st.sidebar.button(
-        t.get("gemini_api_key_submit", "Enter/Submit"),
+        t.get("gemini_api_key_submit", "Submit"),
         key="btn_submit_gemini_key",
         use_container_width=True,
     ):

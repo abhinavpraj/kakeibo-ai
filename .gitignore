@@ -43,3 +43,6 @@ dist/
 
 # SpecKit Sensitive Files (if any credentials are added later)
 .github/copilot/
+
+# Scratch Directory
+scratch/
