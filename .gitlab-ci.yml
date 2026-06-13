@@ -23,7 +23,7 @@ ruff:
   tags:
     - python
   script:
-    - ruff check .
+    - .venv/bin/ruff check .
 
 bandit:
   stage: security
@@ -32,7 +32,7 @@ bandit:
     - python
   script:
     - pip install bandit
-    - bandit -r . -x ./.venv/,./scratch/,./tests/
+    - .venv/bin/bandit -r . -x ./.venv/,./scratch/,./tests/
 
 pip_audit:
   stage: security
@@ -41,7 +41,7 @@ pip_audit:
     - python
   script:
     - pip install pip-audit
-    - pip-audit -r requirements.txt
+    - .venv/bin/pip-audit -r requirements.txt
 
 gitleaks:
   stage: security
@@ -57,7 +57,7 @@ test:
   tags:
     - python
   script:
-    - if [ -d "tests" ]; then pytest --cov=database --cov=auth --cov-report=term --cov-report=xml --cov-fail-under=60 tests/; else echo "No tests directory found, skipping gracefully"; fi
+    - if [ -d "tests" ]; then PYTHONPATH=. .venv/bin/pytest --cov=database --cov=auth --cov-report=term --cov-report=xml --cov-fail-under=60 tests/; else echo "No tests directory found, skipping gracefully"; fi
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)/'
   artifacts:
     reports:
