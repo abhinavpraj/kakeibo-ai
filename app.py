@@ -82,11 +82,20 @@ st.session_state["ai_provider"] = (
 if st.session_state["ai_provider"] == "Gemini":
     if "api_key" not in st.session_state:
         st.session_state["api_key"] = ""
-    st.session_state["api_key"] = st.sidebar.text_input(
+    api_key_val = st.sidebar.text_input(
         t.get("gemini_api_key_label", "Gemini API Key"),
         value=st.session_state["api_key"],
         type="password",
     )
+    if st.sidebar.button(
+        t.get("gemini_api_key_submit", "Enter/Submit"),
+        key="btn_submit_gemini_key",
+        use_container_width=True,
+    ):
+        st.session_state["api_key"] = api_key_val
+        st.toast(t.get("api_key_submitted", "Gemini API Key submitted!"))
+    else:
+        st.session_state["api_key"] = api_key_val
 else:
     if "api_key" not in st.session_state:
         st.session_state["api_key"] = ""
