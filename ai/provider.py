@@ -1,6 +1,7 @@
 from typing import Optional
-from ai.ollama_provider import generate as ollama_generate
+
 from ai.gemini_provider import generate as gemini_generate
+from ai.ollama_provider import generate as ollama_generate
 
 
 def ask_ai(provider: str, prompt: str, api_key: Optional[str] = None) -> str:

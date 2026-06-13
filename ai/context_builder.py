@@ -1,5 +1,6 @@
 import pandas as pd
-from database import get_monthly_goal, get_expenses, get_incomes
+
+from database import get_expenses, get_incomes, get_monthly_goal
 
 
 def build_financial_context(selected_date: pd.Timestamp, user_id: int) -> str:

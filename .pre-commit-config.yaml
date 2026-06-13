@@ -27,3 +27,15 @@ repos:
     hooks:
       - id: bandit
         args: ["-r", "app.py", "database.py", "insights.py", "i18n.py"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.1
+    hooks:
+      - id: ruff
+        args: [ --fix ]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.14.1
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-requests, pandas-stubs]

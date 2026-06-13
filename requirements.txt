@@ -6,3 +6,7 @@ requests
 google-generativeai
 bcrypt
 supabase
+pytest
+pytest-cov
+ruff
+mypy

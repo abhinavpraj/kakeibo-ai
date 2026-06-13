@@ -19,9 +19,13 @@ from database import (
     delete_expense,
     delete_income,
     get_expenses,
+    get_feedback_stats_supabase,
+    get_feedback_supabase,
     get_incomes,
     get_monthly_goal,
+    get_supabase_client,
     init_db,
+    save_feedback_supabase,
     save_monthly_goal,
 )
 from i18n import load_language
@@ -278,8 +282,6 @@ if st.session_state.get("authenticated"):
                 usefulness = st.session_state.get("feedback_usefulness", 3)
                 comments = st.session_state.get("feedback_comments", "")
 
-                from database import save_feedback_supabase
-
                 username = st.session_state.get("username", "Anonymous User")
 
                 try:
@@ -300,10 +302,10 @@ if st.session_state.get("authenticated"):
 
 
 # Calculate default form date based on the selected month
-today_date = date.today()
+today_dt = date.today()
 selected_date = st.session_state["selected_date"]
-if selected_date.month == today_date.month and selected_date.year == today_date.year:
-    default_form_date = today_date
+if selected_date.month == today_dt.month and selected_date.year == today_dt.year:
+    default_form_date = today_dt
 else:
     default_form_date = date(selected_date.year, selected_date.month, 1)
 
@@ -773,12 +775,6 @@ if (
 # ==========================================
 st.divider()
 st.subheader("💬 Community Reviews")
-
-from database import (
-    get_supabase_client,
-    get_feedback_supabase,
-    get_feedback_stats_supabase,
-)
 
 # Safe check for Supabase client
 supabase_available = True

@@ -1,4 +1,5 @@
 import google.generativeai as genai
+
 from config.ai_config import DEFAULT_GEMINI_MODEL
 
 

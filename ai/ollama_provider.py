@@ -1,5 +1,6 @@
 import requests
-from config.ai_config import OLLAMA_API_URL, DEFAULT_OLLAMA_MODEL
+
+from config.ai_config import DEFAULT_OLLAMA_MODEL, OLLAMA_API_URL
 
 
 def generate(prompt: str) -> str:

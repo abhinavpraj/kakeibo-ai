@@ -7,3 +7,23 @@ requires-python = ">=3.9"
 
 [tool.bandit]
 exclude_dirs = [".venv", "tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+lint.select = ["E", "F", "B"]
+lint.ignore = ["E402"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_configs = true
+disable_error_code = ["import-untyped"]
+exclude = [".venv", "tests"]
+explicit_package_bases = true
+
+[tool.coverage.run]
+omit = [
+    "auth/auth_ui.py",
+    "app.py"
+]

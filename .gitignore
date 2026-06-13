@@ -46,3 +46,8 @@ dist/
 
 # Scratch Directory
 scratch/
+
+# Test Coverage
+.coverage
+coverage.xml
+htmlcov/
