@@ -25,7 +25,6 @@ from database import (
     get_monthly_goal,
     get_supabase_client,
     init_db,
-    save_feedback_supabase,
     save_monthly_goal,
 )
 from i18n import load_language
@@ -257,48 +256,17 @@ with header_right:
 # Feedback expander (only shown if logged in)
 if st.session_state.get("authenticated"):
     with st.expander("⭐ Give Feedback - Share your experience with KakeiboAI"):
-        st.write("How would you rate KakeiboAI?")
-        rating_idx = st.feedback("stars", key="feedback_stars")
-
-        st.slider(
-            "How useful was the AI financial coach feature?",
-            min_value=1,
-            max_value=5,
-            value=3,
-            key="feedback_usefulness",
+        st.write(
+            t.get(
+                "feedback_invite",
+                "We value your experience! Please click the button below to share your feedback and help us improve KakeiboAI.",
+            )
         )
-
-        st.text_area(
-            "Comments (Optional)",
-            placeholder="What did you like or what can be improved?",
-            key="feedback_comments",
+        st.link_button(
+            t.get("give_feedback_btn", "📋 Go to Feedback Form"),
+            "https://forms.gle/UW2QhfcY6SYNyTSF9",
+            use_container_width=True,
         )
-
-        if st.button("Submit Feedback", key="btn_submit_feedback"):
-            if rating_idx is None:
-                st.error("Please select a star rating first.")
-            else:
-                rating = rating_idx + 1
-                usefulness = st.session_state.get("feedback_usefulness", 3)
-                comments = st.session_state.get("feedback_comments", "")
-
-                username = st.session_state.get("username", "Anonymous User")
-
-                try:
-                    save_feedback_supabase(
-                        user_id, username, rating, usefulness, comments
-                    )
-
-                    # Reset inputs in session state (deferred to prevent StreamlitAPIException)
-                    st.session_state["clear_feedback_inputs"] = True
-
-                    st.success("Thank you for your feedback!")
-                    st.rerun()
-                except Exception:
-                    import traceback
-
-                    traceback.print_exc()
-                    st.error("Feedback service temporarily unavailable.")
 
 
 # Calculate default form date based on the selected month
