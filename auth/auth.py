@@ -57,9 +57,7 @@ def authenticate_user(username: str, password: str) -> tuple[bool, str, int | No
 
     try:
         with get_connection() as conn:
-            row = conn.execute(
-                "SELECT id, password_hash FROM users WHERE username = ?", (username,)
-            ).fetchone()
+            row = conn.execute("SELECT id, password_hash FROM users WHERE username = ?", (username,)).fetchone()
 
         if not row:
             return False, "Invalid username or password.", None

@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import requests
 
 from config.ai_config import DEFAULT_OLLAMA_MODEL, OLLAMA_API_URL
@@ -7,17 +9,18 @@ def generate(prompt: str) -> str:
     """
     Generate response using local Ollama model.
     """
-    payload = {"model": DEFAULT_OLLAMA_MODEL, "prompt": prompt, "stream": False}
+    payload: Dict[str, Any] = {
+        "model": DEFAULT_OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False,
+    }
     try:
         response = requests.post(OLLAMA_API_URL, json=payload, timeout=30)
         response.raise_for_status()
         result = response.json()
         return result.get("response", "")
     except requests.exceptions.Timeout:
-        return (
-            "⚠️ **Local Ollama request timed out (30 seconds limit).**\n\n"
-            "Please ensure your local Ollama server is responding and not overloaded."
-        )
+        return "⚠️ **Local Ollama request timed out (30 seconds limit).**\n\nPlease ensure your local Ollama server is responding and not overloaded."
     except requests.exceptions.ConnectionError:
         return (
             "⚠️ **Could not connect to local Ollama server.**\n\n"

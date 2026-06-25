@@ -24,7 +24,6 @@ from database import (
 
 
 class MockTable:
-
     def __init__(self):
         self.data = []
 
@@ -40,7 +39,6 @@ class MockTable:
 
     def execute(self):
         class Response:
-
             def __init__(self, data):
                 self.data = data
 
@@ -48,7 +46,6 @@ class MockTable:
 
 
 class MockSupabase:
-
     def __init__(self):
         self._table = MockTable()
 

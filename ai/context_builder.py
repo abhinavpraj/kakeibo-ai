@@ -19,26 +19,19 @@ def build_financial_context(selected_date: pd.Timestamp, user_id: int) -> str:
     def filter_to_month(df, date_col="date"):
         if df.empty:
             return df
-        return df[
-            (df[date_col].dt.month == selected_date.month)
-            & (df[date_col].dt.year == selected_date.year)
-        ]
+        return df[(df[date_col].dt.month == selected_date.month) & (df[date_col].dt.year == selected_date.year)]
 
     month_expenses = filter_to_month(expenses_df)
     month_incomes = filter_to_month(incomes_df)
 
     # Calculation of incomes
     fixed_income = float(goal["monthly_income"])
-    actual_income_received = (
-        float(month_incomes["amount"].sum()) if not month_incomes.empty else 0.0
-    )
+    actual_income_received = float(month_incomes["amount"].sum()) if not month_incomes.empty else 0.0
     total_income = fixed_income + actual_income_received
 
     # Calculation of savings/expenses
     savings_goal = float(goal["target_savings"])
-    total_spent = (
-        float(month_expenses["amount"].sum()) if not month_expenses.empty else 0.0
-    )
+    total_spent = float(month_expenses["amount"].sum()) if not month_expenses.empty else 0.0
     current_savings_estimate = total_income - total_spent
 
     # Category summary breakdown
@@ -54,9 +47,7 @@ def build_financial_context(selected_date: pd.Timestamp, user_id: int) -> str:
     recent_summary = ""
     if not month_expenses.empty:
         # Sort descending by date and ID to get latest 10
-        recent_10 = month_expenses.sort_values(
-            by=["date", "id"], ascending=[False, False]
-        ).head(10)
+        recent_10 = month_expenses.sort_values(by=["date", "id"], ascending=[False, False]).head(10)
         for _, row in recent_10.iterrows():
             date_str = row["date"].strftime("%d/%m/%Y")
             desc = row["description"]

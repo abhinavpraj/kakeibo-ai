@@ -10,3 +10,7 @@ pytest
 pytest-cov
 ruff
 mypy
+pandas-stubs
+types-requests
+bandit
+pip-audit

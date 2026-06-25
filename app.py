@@ -39,6 +39,23 @@ st.set_page_config(page_title="KakeiboAI", page_icon="₹", layout="wide")
 
 init_db()
 
+
+class StreamlitModal:
+    def __init__(self, title: str):
+        self.title = title
+
+    def __enter__(self):
+        self.container = st.container(border=True)
+        self.container.__enter__()
+        self.container.write(f"### {self.title}")
+        return self.container
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.container.__exit__(exc_type, exc_val, exc_tb)
+
+
+st.modal = StreamlitModal  # type: ignore
+
 # Session state initialization for authentication
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
@@ -63,8 +80,7 @@ st.sidebar.write(f"👤 **Logged in as:** {st.session_state['username']}")
 st.sidebar.subheader(t.get("ai_settings", "🤖 AI Settings"))
 
 st.sidebar.markdown(
-    "**Ollama**: " + t.get("ollama_help", "Local/private inference") + "\n\n"
-    "**Gemini**: " + t.get("gemini_help", "Bring Your Own API Key (BYOK)")
+    "**Ollama**: " + t.get("ollama_help", "Local/private inference") + "\n\n**Gemini**: " + t.get("gemini_help", "Bring Your Own API Key (BYOK)")
 )
 
 provider_options = ["Ollama (Local)", "Gemini (BYOK)"]
@@ -78,9 +94,7 @@ selected_provider_label = st.sidebar.selectbox(
     index=default_provider_index,
 )
 
-st.session_state["ai_provider"] = (
-    "Ollama" if selected_provider_label == "Ollama (Local)" else "Gemini"
-)
+st.session_state["ai_provider"] = "Ollama" if selected_provider_label == "Ollama (Local)" else "Gemini"
 
 if st.session_state["ai_provider"] == "Gemini":
     if "api_key" not in st.session_state:
@@ -168,10 +182,7 @@ def category_color(category):
 def selected_month_items(rows, target_date):
     if rows.empty:
         return rows
-    return rows[
-        (rows["date"].dt.month == target_date.month)
-        & (rows["date"].dt.year == target_date.year)
-    ]
+    return rows[(rows["date"].dt.month == target_date.month) & (rows["date"].dt.year == target_date.year)]
 
 
 def money_input_value(value):
@@ -196,9 +207,7 @@ incomes = get_incomes(user_id)
 month_expenses = selected_month_items(expenses, st.session_state["selected_date"])
 month_incomes = selected_month_items(incomes, st.session_state["selected_date"])
 
-actual_income_received = (
-    float(month_incomes["amount"].sum()) if not month_incomes.empty else 0
-)
+actual_income_received = float(month_incomes["amount"].sum()) if not month_incomes.empty else 0
 total_monthly_income = float(goal["monthly_income"]) + actual_income_received
 
 total_spent = float(month_expenses["amount"].sum()) if not month_expenses.empty else 0
@@ -216,11 +225,7 @@ if selected_date.month == today_date.month and selected_date.year == today_date.
     forecast_savings = total_monthly_income - projected_spend
 else:
     forecast_savings = total_monthly_income - total_spent
-progress = (
-    0
-    if goal["target_savings"] <= 0
-    else max(0, min(forecast_savings / goal["target_savings"], 1))
-)
+progress = 0 if goal["target_savings"] <= 0 else max(0, min(forecast_savings / goal["target_savings"], 1))
 
 selected_month_label = st.session_state["selected_date"].strftime("%B %Y")
 
@@ -229,9 +234,7 @@ with header_left:
     st.title(t.get("title", "KakeiboAI"))
     st.caption(t.get("tagline", "Reflect. Save. Grow."))
 with header_right:
-    btn_left, month_label_col, btn_right = st.columns(
-        [0.15, 0.7, 0.15], vertical_alignment="center"
-    )
+    btn_left, month_label_col, btn_right = st.columns([0.15, 0.7, 0.15], vertical_alignment="center")
     with btn_left:
         prev_month = st.button("◀", key="prev_month", use_container_width=True)
     with month_label_col:
@@ -243,14 +246,10 @@ with header_right:
         next_month = st.button("▶", key="next_month", use_container_width=True)
 
     if prev_month:
-        st.session_state["selected_date"] = st.session_state[
-            "selected_date"
-        ] - pd.DateOffset(months=1)
+        st.session_state["selected_date"] = st.session_state["selected_date"] - pd.DateOffset(months=1)
         st.rerun()
     if next_month:
-        st.session_state["selected_date"] = st.session_state[
-            "selected_date"
-        ] + pd.DateOffset(months=1)
+        st.session_state["selected_date"] = st.session_state["selected_date"] + pd.DateOffset(months=1)
         st.rerun()
 
 # Feedback expander (only shown if logged in)
@@ -293,9 +292,7 @@ with plan_panel:
                 value=money_input_value(goal["target_savings"]),
                 placeholder=t.get("savings_goal_placeholder", "₹ 3000"),
             )
-            save_plan = st.form_submit_button(
-                t.get("save_plan", "Save plan"), width="stretch"
-            )
+            save_plan = st.form_submit_button(t.get("save_plan", "Save plan"), width="stretch")
             if save_plan:
                 monthly_income = parse_money_input(monthly_income_input)
                 target_savings = parse_money_input(target_savings_input)
@@ -320,9 +317,7 @@ with plan_panel:
                         monthly_income,
                         target_savings,
                     )
-                    st.success(
-                        t.get("success_monthly_plan_saved", "Monthly plan saved.")
-                    )
+                    st.success(t.get("success_monthly_plan_saved", "Monthly plan saved."))
                     st.rerun()
 
 with income_panel:
@@ -343,9 +338,7 @@ with income_panel:
                 key="inc_date",
             )
         with income_cols[2]:
-            income_source = st.selectbox(
-                t.get("source", "Source"), INCOME_SOURCES, key="inc_source"
-            )
+            income_source = st.selectbox(t.get("source", "Source"), INCOME_SOURCES, key="inc_source")
 
         custom_source = ""
         if income_source == "Other":
@@ -358,9 +351,7 @@ with income_panel:
         income_notes = st.text_input(
             t.get("notes", "Notes"),
             key="inc_notes",
-            placeholder=t.get(
-                "notes_placeholder", "Rent for June, bonus payout, interest earned"
-            ),
+            placeholder=t.get("notes_placeholder", "Rent for June, bonus payout, interest earned"),
         )
 
         income_submitted = st.button(
@@ -370,9 +361,7 @@ with income_panel:
         )
         if income_submitted:
             income_amount = parse_money_input(income_amount_input)
-            source_text = (
-                custom_source.strip() if income_source == "Other" else income_source
-            )
+            source_text = custom_source.strip() if income_source == "Other" else income_source
             if income_amount is None:
                 st.error(
                     t.get(
@@ -433,9 +422,7 @@ with expense_panel:
         description = st.text_input(
             t.get("description", "Description"),
             key="exp_desc",
-            placeholder=t.get(
-                "description_placeholder", "Coffee, bus pass, online course"
-            ),
+            placeholder=t.get("description_placeholder", "Coffee, bus pass, online course"),
         )
 
         reflection = ""
@@ -499,49 +486,29 @@ with expense_panel:
 st.divider()
 
 metric_cols = st.columns(6)
-metric_cols[0].metric(
-    t.get("monthly_income_metric", "Monthly Income"), currency(goal["monthly_income"])
-)
-metric_cols[1].metric(
-    t.get("income_received", "Income Received"), currency(actual_income_received)
-)
+metric_cols[0].metric(t.get("monthly_income_metric", "Monthly Income"), currency(goal["monthly_income"]))
+metric_cols[1].metric(t.get("income_received", "Income Received"), currency(actual_income_received))
 metric_cols[2].metric(
     t.get("total_monthly_income", "Total Monthly Income"),
     currency(total_monthly_income),
 )
-metric_cols[3].metric(
-    t.get("savings_goal", "Savings Goal"), currency(goal["target_savings"])
-)
-metric_cols[4].metric(
-    t.get("spent_this_month", "Spent This Month"), currency(total_spent)
-)
+metric_cols[3].metric(t.get("savings_goal", "Savings Goal"), currency(goal["target_savings"]))
+metric_cols[4].metric(t.get("spent_this_month", "Spent This Month"), currency(total_spent))
 metric_cols[5].metric(t.get("budget_left", "Budget Left"), currency(remaining_budget))
 
 st.progress(
     progress,
-    text=t.get("projected_savings", "Projected savings: {amount}").format(
-        amount=currency(forecast_savings)
-    ),
+    text=t.get("projected_savings", "Projected savings: {amount}").format(amount=currency(forecast_savings)),
 )
 
 if goal["monthly_income"] <= 0:
-    st.info(
-        t.get(
-            "info_add_monthly_plan", "Add your monthly plan to unlock savings status."
-        )
-    )
+    st.info(t.get("info_add_monthly_plan", "Add your monthly plan to unlock savings status."))
 elif forecast_savings >= goal["target_savings"]:
     st.success(t.get("savings_status_on_track", "Savings status: On track"))
 elif remaining_budget < 0:
-    st.error(
-        t.get(
-            "savings_status_over_budget", "Savings status: Over planned spending budget"
-        )
-    )
+    st.error(t.get("savings_status_over_budget", "Savings status: Over planned spending budget"))
 else:
-    st.warning(
-        t.get("savings_status_needs_attention", "Savings status: Needs attention")
-    )
+    st.warning(t.get("savings_status_needs_attention", "Savings status: Needs attention"))
 
 dashboard_left, dashboard_right = st.columns([1.35, 0.85], gap="large")
 
@@ -556,11 +523,7 @@ with dashboard_left:
                 )
             )
         else:
-            category_totals = (
-                month_expenses.groupby("category", as_index=False)["amount"]
-                .sum()
-                .sort_values("amount", ascending=False)
-            )
+            category_totals = month_expenses.groupby("category", as_index=False)["amount"].sum().sort_values("amount", ascending=False)
 
             chart_col, table_col = st.columns([1.15, 0.85], gap="medium")
             with chart_col:
@@ -570,9 +533,7 @@ with dashboard_left:
                     names="category",
                     hole=0.48,
                     color="category",
-                    color_discrete_map={
-                        category: category_color(category) for category in CATEGORIES
-                    },
+                    color_discrete_map={category: category_color(category) for category in CATEGORIES},
                 )
                 chart.update_traces(
                     textposition="inside",
@@ -589,9 +550,7 @@ with dashboard_left:
             with table_col:
                 st.markdown(t.get("category_totals", "**Category Totals**"))
                 category_totals_display = category_totals.copy()
-                category_totals_display["amount"] = category_totals_display[
-                    "amount"
-                ].map(currency)
+                category_totals_display["amount"] = category_totals_display["amount"].map(currency)
                 table = category_totals_display.rename(
                     columns={
                         "category": t.get("kakeibo_category", "Kakeibo Category"),
@@ -619,21 +578,9 @@ with dashboard_right:
                 )
             )
         else:
-            optional_extra = month_expenses[
-                month_expenses["category"].isin(
-                    ["Optional (Wants)", "Extra (Unexpected)"]
-                )
-            ]["amount"].sum()
-            st.write(
-                t.get("total_spending", "Total spending: **{amount}**").format(
-                    amount=currency(total_spent)
-                )
-            )
-            st.write(
-                t.get(
-                    "optional_extra_spending", "Optional + Extra spending: **{amount}**"
-                ).format(amount=currency(optional_extra))
-            )
+            optional_extra = month_expenses[month_expenses["category"].isin(["Optional (Wants)", "Extra (Unexpected)"])]["amount"].sum()
+            st.write(t.get("total_spending", "Total spending: **{amount}**").format(amount=currency(total_spent)))
+            st.write(t.get("optional_extra_spending", "Optional + Extra spending: **{amount}**").format(amount=currency(optional_extra)))
             if forecast_savings >= goal["target_savings"]:
                 st.success(t.get("on_track", "On track"))
             else:
@@ -664,11 +611,8 @@ else:
     )
 
 
-if (
-    st.session_state.get("pending_delete")
-    and st.session_state["pending_delete"]["type"] == "income"
-):
-    with st.modal(t.get("confirm_delete_income", "Confirm delete income")):
+if st.session_state.get("pending_delete") and st.session_state["pending_delete"]["type"] == "income":
+    with st.modal(t.get("confirm_delete_income", "Confirm delete income")):  # type: ignore
         st.warning(
             t.get(
                 "confirm_delete_income_message",
@@ -679,9 +623,7 @@ if (
             t.get("yes_delete_income", "Yes, delete income"),
             key="confirm_delete_income",
         ):
-            delete_income(
-                st.session_state["user_id"], st.session_state["pending_delete"]["id"]
-            )
+            delete_income(st.session_state["user_id"], st.session_state["pending_delete"]["id"])
             del st.session_state["pending_delete"]
             st.success(t.get("income_entry_deleted", "Income entry deleted."))
             st.rerun()
@@ -714,11 +656,8 @@ else:
         width="stretch",
     )
 
-if (
-    st.session_state.get("pending_delete")
-    and st.session_state["pending_delete"]["type"] == "expense"
-):
-    with st.modal(t.get("confirm_delete_expense", "Confirm delete expense")):
+if st.session_state.get("pending_delete") and st.session_state["pending_delete"]["type"] == "expense":
+    with st.modal(t.get("confirm_delete_expense", "Confirm delete expense")):  # type: ignore
         st.warning(
             t.get(
                 "confirm_delete_expense_message",
@@ -729,9 +668,7 @@ if (
             t.get("yes_delete_expense", "Yes, delete expense"),
             key="confirm_delete_expense",
         ):
-            delete_expense(
-                st.session_state["user_id"], st.session_state["pending_delete"]["id"]
-            )
+            delete_expense(st.session_state["user_id"], st.session_state["pending_delete"]["id"])
             del st.session_state["pending_delete"]
             st.success(t.get("expense_entry_deleted", "Expense entry deleted."))
             st.rerun()
@@ -775,9 +712,7 @@ else:
                 st.metric("📈 Satisfaction Rate", f"{stats['satisfaction_pct']:.0f}%")
 
             # Satisfaction Banner (Bonus)
-            st.info(
-                f"📊 **Community Satisfaction:** {stats['satisfaction_pct']:.0f}% of users rated KakeiboAI 4 stars or higher."
-            )
+            st.info(f"📊 **Community Satisfaction:** {stats['satisfaction_pct']:.0f}% of users rated KakeiboAI 4 stars or higher.")
 
             # Recent Reviews (Latest 20 reviews)
             st.markdown("### Recent Reviews")
@@ -824,9 +759,7 @@ else:
             st.markdown("### 🔍 Search Feedback")
             col_f1, col_f2, col_f3 = st.columns(3)
             with col_f1:
-                search_user = st.text_input(
-                    "Filter by Username", key="search_user_val"
-                ).strip()
+                search_user = st.text_input("Filter by Username", key="search_user_val").strip()
             with col_f2:
                 search_rating = st.selectbox(
                     "Filter by Rating",
@@ -851,11 +784,7 @@ else:
             # Filter dataframe
             filtered_df = feedback_df.copy()
             if search_user:
-                filtered_df = filtered_df[
-                    filtered_df["username"].str.contains(
-                        search_user, case=False, na=False
-                    )
-                ]
+                filtered_df = filtered_df[filtered_df["username"].str.contains(search_user, case=False, na=False)]
 
             if search_rating != "All":
                 target_stars = int(search_rating.split()[0])
@@ -863,27 +792,15 @@ else:
 
             if search_date:
                 try:
-                    filtered_df = filtered_df[
-                        filtered_df["created_at"].dt.strftime("%Y-%m-%d") == search_date
-                    ]
+                    filtered_df = filtered_df[filtered_df["created_at"].dt.strftime("%Y-%m-%d") == search_date]
                 except Exception:
-                    filtered_df = filtered_df[
-                        filtered_df["created_at"]
-                        .astype(str)
-                        .str.contains(search_date, na=False)
-                    ]
+                    filtered_df = filtered_df[filtered_df["created_at"].astype(str).str.contains(search_date, na=False)]
 
             # Format dataframe for display
             if not filtered_df.empty:
                 display_df = filtered_df.copy()
-                display_df["stars_rating"] = display_df["rating"].apply(
-                    lambda r: "⭐" * int(r)
-                )
-                display_df["formatted_date"] = display_df["created_at"].apply(
-                    lambda d: (
-                        d.strftime("%Y-%m-%d") if hasattr(d, "strftime") else str(d)
-                    )
-                )
+                display_df["stars_rating"] = display_df["rating"].apply(lambda r: "⭐" * int(r))
+                display_df["formatted_date"] = display_df["created_at"].apply(lambda d: d.strftime("%Y-%m-%d") if hasattr(d, "strftime") else str(d))
 
                 table_df = display_df[
                     [
@@ -915,14 +832,10 @@ else:
                     key="btn_export_feedback",
                 )
             else:
-                st.info(
-                    "No matching feedback entries found for the active search criteria."
-                )
+                st.info("No matching feedback entries found for the active search criteria.")
 
         else:
-            st.info(
-                "No feedback has been submitted yet. Share your experience at the top of the page!"
-            )
+            st.info("No feedback has been submitted yet. Share your experience at the top of the page!")
     except Exception:
         import traceback
 
@@ -937,14 +850,8 @@ st.divider()
 st.subheader(t.get("chat_title", "🤖 Ask KakeiboAI"))
 
 # Display active provider
-active_provider_label = (
-    "Local AI (Ollama)"
-    if st.session_state["ai_provider"] == "Ollama"
-    else "Gemini BYOK"
-)
-st.caption(
-    f"{t.get('active_ai_engine', 'Active AI Engine:')} **{active_provider_label}**"
-)
+active_provider_label = "Local AI (Ollama)" if st.session_state["ai_provider"] == "Ollama" else "Gemini BYOK"
+st.caption(f"{t.get('active_ai_engine', 'Active AI Engine:')} **{active_provider_label}**")
 
 # Display example prompts
 st.markdown(
@@ -967,34 +874,24 @@ with col1:
         quick_prompt = "Provide a detailed analysis of my spending by category, highlighting any unusual or high spending."
 
 with col2:
-    if st.button(
-        "💡 " + t.get("savings_advice", "Savings Advice"), use_container_width=True
-    ):
+    if st.button("💡 " + t.get("savings_advice", "Savings Advice"), use_container_width=True):
         quick_prompt = "Given my monthly income and savings goal, what actionable advice can you give me to save more money?"
 
 with col3:
-    if st.button(
-        "📈 " + t.get("monthly_review", "Monthly Review"), use_container_width=True
-    ):
+    if st.button("📈 " + t.get("monthly_review", "Monthly Review"), use_container_width=True):
         quick_prompt = "Provide a comprehensive review of my finances for this month, assessing if I am on track."
 
 with col4:
-    if st.button(
-        "⚠️ " + t.get("spending_risks", "Spending Risks"), use_container_width=True
-    ):
+    if st.button("⚠️ " + t.get("spending_risks", "Spending Risks"), use_container_width=True):
         quick_prompt = "Identify potential spending risks or bad habits based on my current logs and reflections."
 
 # Handle Quick Actions trigger
 if quick_prompt:
-    st.session_state["chat_messages"].append(
-        {"role": "user", "content": f"Request: {quick_prompt}"}
-    )
+    st.session_state["chat_messages"].append({"role": "user", "content": f"Request: {quick_prompt}"})
 
     from ai.context_builder import build_financial_context
 
-    context = build_financial_context(
-        st.session_state["selected_date"], st.session_state["user_id"]
-    )
+    context = build_financial_context(st.session_state["selected_date"], st.session_state["user_id"])
 
     system_prompt = (
         "You are KakeiboAI, a personal finance coach based on the Japanese Kakeibo methodology (mindful spending, reflection, and saving). "
@@ -1011,9 +908,7 @@ if quick_prompt:
             prompt=system_prompt,
             api_key=st.session_state.get("api_key"),
         )
-        st.session_state["chat_messages"].append(
-            {"role": "assistant", "content": response}
-        )
+        st.session_state["chat_messages"].append({"role": "assistant", "content": response})
     st.rerun()
 
 # Display Chat History
@@ -1022,17 +917,13 @@ for message in st.session_state["chat_messages"]:
         st.markdown(message["content"])
 
 # Handle Chat Input
-user_input = st.chat_input(
-    t.get("chat_input_placeholder", "Ask KakeiboAI about your finances...")
-)
+user_input = st.chat_input(t.get("chat_input_placeholder", "Ask KakeiboAI about your finances..."))
 if user_input:
     st.session_state["chat_messages"].append({"role": "user", "content": user_input})
 
     from ai.context_builder import build_financial_context
 
-    context = build_financial_context(
-        st.session_state["selected_date"], st.session_state["user_id"]
-    )
+    context = build_financial_context(st.session_state["selected_date"], st.session_state["user_id"])
 
     system_prompt = (
         "You are KakeiboAI, a personal finance coach based on the Japanese Kakeibo methodology (mindful spending, reflection, and saving). "

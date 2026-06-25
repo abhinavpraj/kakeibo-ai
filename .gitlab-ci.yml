@@ -1,63 +1,73 @@
 stages:
+  - format
   - lint
-  - security
+  - type_check
   - test
+  - coverage
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .venv/
 
 .python_env:
+  tags:
+    - python
   before_script:
     - if [ ! -d ".venv" ]; then python3 -m venv .venv; fi
     - source .venv/bin/activate
     - pip install --upgrade pip
     - pip install -r requirements.txt
 
-py_compile:
-  stage: lint
-  tags:
-    - python
+format:
+  stage: format
+  extends: .python_env
   script:
-    - find . -name "*.py" -not -path "*/.venv/*" -not -path "*/scratch/*" -exec python3 -m py_compile {} +
+    - .venv/bin/ruff format --check --no-cache .
 
-ruff:
+lint:
   stage: lint
   extends: .python_env
-  tags:
-    - python
   script:
-    - .venv/bin/ruff check .
+    - .venv/bin/ruff check --no-cache .
 
-bandit:
-  stage: security
+type_check:
+  stage: type_check
   extends: .python_env
-  tags:
-    - python
   script:
-    - pip install bandit
+    - .venv/bin/mypy .
+
+static_analysis:
+  stage: test
+  extends: .python_env
+  script:
     - .venv/bin/bandit -r . -x ./.venv/,./scratch/,./tests/
 
-pip_audit:
-  stage: security
+dependency_audit:
+  stage: test
   extends: .python_env
-  tags:
-    - python
   script:
-    - pip install pip-audit
     - .venv/bin/pip-audit -r requirements.txt
 
-gitleaks:
-  stage: security
+test:
+  stage: test
+  extends: .python_env
+  script:
+    - if [ -d "tests" ]; then PYTHONPATH=. .venv/bin/pytest tests/ -p no:cacheprovider --basetemp=./test_tmp; else echo "No tests found, skipping"; fi
+
+secret_detection:
+  stage: test
   tags:
     - python
   script:
     - export PATH="/opt/homebrew/bin:$PATH"
     - gitleaks detect --source=. -v
 
-test:
-  stage: test
+coverage:
+  stage: coverage
   extends: .python_env
-  tags:
-    - python
   script:
-    - if [ -d "tests" ]; then PYTHONPATH=. .venv/bin/pytest --cov=database --cov=auth --cov-report=term --cov-report=xml --cov-fail-under=60 tests/; else echo "No tests directory found, skipping gracefully"; fi
+    - if [ -d "tests" ]; then PYTHONPATH=. .venv/bin/pytest --cov=database --cov=auth --cov-report=term --cov-report=xml --cov-fail-under=60 tests/ -p no:cacheprovider --basetemp=./test_tmp; else echo "No tests found, skipping"; fi
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)/'
   artifacts:
     reports:

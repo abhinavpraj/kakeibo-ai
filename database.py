@@ -54,9 +54,7 @@ def migrate_db():
         )
 
         # Check if legacy user exists
-        legacy_user = conn.execute(
-            "SELECT id FROM users WHERE username = 'legacy'"
-        ).fetchone()
+        legacy_user = conn.execute("SELECT id FROM users WHERE username = 'legacy'").fetchone()
         if not legacy_user:
             legacy_hash = bcrypt.hashpw(b"legacy", bcrypt.gensalt()).decode("utf-8")
             conn.execute(
@@ -162,9 +160,7 @@ def migrate_db():
                     conn.execute("DROP TABLE old_goals")
 
                 elif table == "monthly_goals":
-                    conn.execute(
-                        "ALTER TABLE monthly_goals RENAME TO old_monthly_goals"
-                    )
+                    conn.execute("ALTER TABLE monthly_goals RENAME TO old_monthly_goals")
                     conn.execute(
                         """
                         CREATE TABLE monthly_goals (
@@ -240,9 +236,7 @@ def init_db():
             ("expenses", "time TEXT NOT NULL DEFAULT ''"),
             ("incomes", "time TEXT NOT NULL DEFAULT ''"),
         ]:
-            existing_columns = [
-                row[1] for row in conn.execute(f"PRAGMA table_info({table})")
-            ]
+            existing_columns = [row[1] for row in conn.execute(f"PRAGMA table_info({table})")]
             if column_def.split()[0] not in existing_columns:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
 
@@ -560,12 +554,7 @@ def get_feedback_supabase():
         return pd.DataFrame()
 
     try:
-        response = (
-            client.table("feedback")
-            .select("*")
-            .order("created_at", desc=True)
-            .execute()
-        )
+        response = client.table("feedback").select("*").order("created_at", desc=True).execute()
         data = response.data
         if not data:
             return pd.DataFrame()

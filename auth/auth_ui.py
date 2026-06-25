@@ -45,12 +45,8 @@ def render_auth_ui():
         st.subheader("Create a new account")
         with st.form("register_form", clear_on_submit=False):
             username = st.text_input("Username", key="register_username").strip()
-            password = st.text_input(
-                "Password", type="password", key="register_password"
-            )
-            confirm_password = st.text_input(
-                "Confirm Password", type="password", key="register_confirm"
-            )
+            password = st.text_input("Password", type="password", key="register_password")
+            confirm_password = st.text_input("Confirm Password", type="password", key="register_confirm")
             submit = st.form_submit_button("Register", use_container_width=True)
 
             if submit:

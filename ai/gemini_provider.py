@@ -17,11 +17,7 @@ def generate(prompt: str, api_key: str) -> str:
         model_name = DEFAULT_GEMINI_MODEL
         try:
             available_models = list(genai.list_models())
-            supported_models = [
-                m.name
-                for m in available_models
-                if "generateContent" in m.supported_generation_methods
-            ]
+            supported_models = [m.name for m in available_models if "generateContent" in m.supported_generation_methods]
             # Clean names (remove prefix like 'models/')
             clean_names = [m.replace("models/", "") for m in supported_models]
 
@@ -67,10 +63,6 @@ def generate(prompt: str, api_key: str) -> str:
         return response.text
     except Exception as e:
         err_msg = str(e)
-        if (
-            "API_KEY_INVALID" in err_msg
-            or "API key not valid" in err_msg
-            or "invalid" in err_msg.lower()
-        ):
+        if "API_KEY_INVALID" in err_msg or "API key not valid" in err_msg or "invalid" in err_msg.lower():
             return "Error: The provided Gemini API Key is invalid. Please double-check your API Key in the sidebar."
         return f"Error: Gemini API invocation failed: {err_msg}"
