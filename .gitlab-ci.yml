@@ -5,15 +5,14 @@ stages:
   - test
   - coverage
 
-default:
-  image: python:3.12
-
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - .venv/
 
 .python_env:
+  tags:
+    - python
   before_script:
     - if [ ! -d ".venv" ]; then python3 -m venv .venv; fi
     - source .venv/bin/activate
@@ -58,10 +57,10 @@ test:
 
 secret_detection:
   stage: test
-  image:
-    name: gitleaks/gitleaks:latest
-    entrypoint: [""]
+  tags:
+    - python
   script:
+    - export PATH="/opt/homebrew/bin:$PATH"
     - gitleaks detect --source=. -v
 
 coverage:
