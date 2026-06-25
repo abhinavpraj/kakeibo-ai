@@ -1,7 +1,7 @@
 stages:
-  - format
   - lint
   - type_check
+  - security
   - test
   - coverage
 
@@ -19,16 +19,11 @@ cache:
     - pip install --upgrade pip
     - pip install -r requirements.txt
 
-format:
-  stage: format
-  extends: .python_env
-  script:
-    - .venv/bin/ruff format --check --no-cache .
-
-lint:
+ruff:
   stage: lint
   extends: .python_env
   script:
+    - .venv/bin/ruff format --check --no-cache .
     - .venv/bin/ruff check --no-cache .
 
 type_check:
@@ -38,30 +33,30 @@ type_check:
     - .venv/bin/mypy .
 
 static_analysis:
-  stage: test
+  stage: security
   extends: .python_env
   script:
     - .venv/bin/bandit -r . -x ./.venv/,./scratch/,./tests/
 
 dependency_audit:
-  stage: test
+  stage: security
   extends: .python_env
   script:
     - .venv/bin/pip-audit -r requirements.txt
+
+secret_detection:
+  stage: security
+  tags:
+    - python
+  script:
+    - export PATH="/opt/homebrew/bin:$PATH"
+    - gitleaks detect --source=. -v
 
 test:
   stage: test
   extends: .python_env
   script:
     - if [ -d "tests" ]; then PYTHONPATH=. .venv/bin/pytest tests/ -p no:cacheprovider --basetemp=./test_tmp; else echo "No tests found, skipping"; fi
-
-secret_detection:
-  stage: test
-  tags:
-    - python
-  script:
-    - export PATH="/opt/homebrew/bin:$PATH"
-    - gitleaks detect --source=. -v
 
 coverage:
   stage: coverage
