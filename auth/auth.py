@@ -1,5 +1,6 @@
-import sqlite3
 import logging
+import sqlite3
+
 import bcrypt
 import streamlit as st
 
@@ -10,7 +11,7 @@ logger = logging.getLogger("kakeibo_auth")
 logger.setLevel(logging.INFO)
 if not logger.handlers:
     sh = logging.StreamHandler()
-    sh.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    sh.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(sh)
 
 
@@ -58,11 +59,7 @@ def create_user(username: str, password: str, email: str = "") -> tuple[bool, st
                 return False, f"Username '{username}' is already taken."
 
             # Insert user into Supabase
-            user_data = {
-                "username": username,
-                "email": email or None,
-                "password_hash": hashed
-            }
+            user_data = {"username": username, "email": email or None, "password_hash": hashed}
             res_insert = client.table("users").insert(user_data).execute()
             if not res_insert.data:
                 raise RuntimeError("Failed to insert user into Supabase.")
@@ -181,4 +178,3 @@ def get_current_user() -> tuple[str | None, int | None]:
     if st.session_state.get("authenticated"):
         return st.session_state.get("username"), st.session_state.get("user_id")
     return None, None
-
