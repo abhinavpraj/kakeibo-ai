@@ -504,8 +504,12 @@ def get_supabase_client():
     """
     import streamlit as st
 
-    if "SUPABASE_URL" not in st.secrets or "SUPABASE_ANON_KEY" not in st.secrets:
+    try:
+        if "SUPABASE_URL" not in st.secrets or "SUPABASE_ANON_KEY" not in st.secrets:
+            return None
+    except Exception:
         return None
+
     try:
         from supabase import create_client
 

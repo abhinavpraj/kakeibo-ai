@@ -45,6 +45,7 @@ def render_auth_ui():
         st.subheader("Create a new account")
         with st.form("register_form", clear_on_submit=False):
             username = st.text_input("Username", key="register_username").strip()
+            email = st.text_input("Email", key="register_email").strip()
             password = st.text_input("Password", type="password", key="register_password")
             confirm_password = st.text_input("Confirm Password", type="password", key="register_confirm")
             submit = st.form_submit_button("Register", use_container_width=True)
@@ -57,7 +58,7 @@ def render_auth_ui():
                 elif password != confirm_password:
                     st.error("Passwords do not match.")
                 else:
-                    success, message = create_user(username, password)
+                    success, message = create_user(username, password, email)
                     if success:
                         st.success(message)
                         # Auto-login after successful registration
