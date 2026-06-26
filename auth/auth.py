@@ -32,6 +32,47 @@ def verify_password(password: str, hashed: str) -> bool:
         return False
 
 
+def _create_user_sqlite(username: str, hashed: str) -> tuple[bool, str]:
+    logger.info(f"Registering user '{username}' locally in SQLite.")
+    try:
+        with get_connection() as conn:
+            cursor = conn.execute(
+                "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+                (username, hashed),
+            )
+            local_id = cursor.lastrowid
+            logger.info(f"User '{username}' registered in local SQLite with ID {local_id}.")
+            return True, "User registered successfully."
+    except sqlite3.IntegrityError:
+        logger.warning(f"Registration failed: username '{username}' already taken in SQLite.")
+        return False, f"Username '{username}' is already taken."
+    except Exception as e:
+        logger.error(f"Error creating user in SQLite: {str(e)}")
+        return False, f"Error creating user: {str(e)}"
+
+
+def _authenticate_user_sqlite(username: str, password: str) -> tuple[bool, str, int | None]:
+    logger.info(f"Authenticating user '{username}' against SQLite.")
+    try:
+        with get_connection() as conn:
+            row = conn.execute("SELECT id, password_hash FROM users WHERE username = ?", (username,)).fetchone()
+
+        if not row:
+            logger.warning(f"Authentication failed: user '{username}' not found in SQLite.")
+            return False, "Invalid username or password.", None
+
+        user_id, hashed = row
+        if verify_password(password, hashed):
+            logger.info(f"Authentication successful for user '{username}' (ID: {user_id}) on SQLite.")
+            return True, "Authenticated successfully.", user_id
+        else:
+            logger.warning(f"Authentication failed: invalid password for user '{username}'.")
+            return False, "Invalid username or password.", None
+    except Exception as e:
+        logger.error(f"Authentication error via SQLite: {str(e)}")
+        return False, f"Authentication error: {str(e)}", None
+
+
 def create_user(username: str, password: str, email: str = "") -> tuple[bool, str]:
     """
     Create a new user. Returns (success_bool, message).
@@ -77,26 +118,14 @@ def create_user(username: str, password: str, email: str = "") -> tuple[bool, st
 
             return True, "User registered successfully."
         except Exception as e:
+            err_msg = str(e)
+            if "PGRST205" in err_msg or "Could not find the table" in err_msg:
+                logger.warning("Supabase 'users' table not found in schema cache. Falling back to local SQLite.")
+                return _create_user_sqlite(username, hashed)
             logger.error(f"Error creating user in Supabase: {str(e)}")
             return False, f"Error creating user: {str(e)}"
     else:
-        # Fall back to local SQLite only
-        logger.info(f"Supabase not configured. Registering user '{username}' locally in SQLite.")
-        try:
-            with get_connection() as conn:
-                cursor = conn.execute(
-                    "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-                    (username, hashed),
-                )
-                local_id = cursor.lastrowid
-                logger.info(f"User '{username}' registered in local SQLite with ID {local_id}.")
-                return True, "User registered successfully."
-        except sqlite3.IntegrityError:
-            logger.warning(f"Registration failed: username '{username}' already taken in SQLite.")
-            return False, f"Username '{username}' is already taken."
-        except Exception as e:
-            logger.error(f"Error creating user in SQLite: {str(e)}")
-            return False, f"Error creating user: {str(e)}"
+        return _create_user_sqlite(username, hashed)
 
 
 def authenticate_user(username: str, password: str) -> tuple[bool, str, int | None]:
@@ -136,29 +165,14 @@ def authenticate_user(username: str, password: str) -> tuple[bool, str, int | No
                 logger.warning(f"Authentication failed: invalid password for user '{username}'.")
                 return False, "Invalid username or password.", None
         except Exception as e:
+            err_msg = str(e)
+            if "PGRST205" in err_msg or "Could not find the table" in err_msg:
+                logger.warning("Supabase 'users' table not found in schema cache. Falling back to local SQLite.")
+                return _authenticate_user_sqlite(username, password)
             logger.error(f"Authentication error via Supabase: {str(e)}")
             return False, f"Authentication error: {str(e)}", None
     else:
-        # Fall back to local SQLite only
-        logger.info(f"Supabase not configured. Authenticating user '{username}' against SQLite.")
-        try:
-            with get_connection() as conn:
-                row = conn.execute("SELECT id, password_hash FROM users WHERE username = ?", (username,)).fetchone()
-
-            if not row:
-                logger.warning(f"Authentication failed: user '{username}' not found in SQLite.")
-                return False, "Invalid username or password.", None
-
-            user_id, hashed = row
-            if verify_password(password, hashed):
-                logger.info(f"Authentication successful for user '{username}' (ID: {user_id}) on SQLite.")
-                return True, "Authenticated successfully.", user_id
-            else:
-                logger.warning(f"Authentication failed: invalid password for user '{username}'.")
-                return False, "Invalid username or password.", None
-        except Exception as e:
-            logger.error(f"Authentication error via SQLite: {str(e)}")
-            return False, f"Authentication error: {str(e)}", None
+        return _authenticate_user_sqlite(username, password)
 
 
 def logout_user():
