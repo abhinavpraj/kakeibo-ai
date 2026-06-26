@@ -14,5 +14,3 @@ pandas-stubs
 types-requests
 bandit
 pip-audit
-git+https://code.swecha.org/corpus/corpus-client-cli.git
-
