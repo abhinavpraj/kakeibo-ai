@@ -409,3 +409,9 @@ To connect KakeiboAI to your Supabase instance, create a secrets file locally:
 > [!IMPORTANT]
 > Never commit `.streamlit/secrets.toml` to Git. The `.gitignore` file of this repository is pre-configured to ignore this folder.
 > When deploying to **Streamlit Community Cloud**, navigate to your app settings, click on **Secrets**, and paste the two lines of TOML config there.
+
+## Documentation
+
+* [User Growth Plan](USER_GROWTH_PLAN.md)
+* [Geographical Expansion Plan](GEO_EXPANSION_PLAN.md)
+
